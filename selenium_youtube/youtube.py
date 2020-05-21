@@ -1,5 +1,5 @@
 from typing import List, Dict, Optional
-import time
+import time, json
 
 from selenium_firefox.firefox import Firefox, By, Keys
 
@@ -28,7 +28,7 @@ class Youtube:
             if self.browser.has_cookies_for_current_website():
                 self.browser.load_cookies()
                 time.sleep(1.5)
-                self.browser.driver.refresh()
+                self.browser.refresh()
             else:
                 input('Log in then press enter')
                 self.browser.get(YT_URL)
@@ -38,7 +38,7 @@ class Youtube:
             self.quit()
 
             raise
-    
+
     def upload(
         self,
         video_path: str,
@@ -46,7 +46,7 @@ class Youtube:
         description: str,
         tags: List[str]
     ) -> bool:
-        self.browser.driver.get(YT_URL)
+        self.browser.get(YT_URL)
         time.sleep(1.5)
 
         try:
@@ -62,46 +62,31 @@ class Youtube:
             time.sleep(0.5)
             title_field.clear()
             time.sleep(0.5)
-            title_field.send_keys(title)
+            title_field.send_keys(Keys.COMMAND + 'a')
+            time.sleep(0.5)
+            title_field.send_keys(title[:MAX_TITLE_CHAR_LEN])
             print('Upload: added title')
-
             description_container = self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/ytcp-uploads-basics/ytcp-mention-textbox[2]")
             description_field = self.browser.find(By.ID, "textbox", element=description_container)
             description_field.click()
             time.sleep(0.5)
             description_field.clear()
             time.sleep(0.5)
-            description_field.send_keys(description)
-            print('Upload: added desc')
+            description_field.send_keys(description[:MAX_DESCRIPTION_CHAR_LEN])
+
+            print('Upload: added description')
 
             self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/div/ytcp-button/div").click()
-            print("clicked more options")
+            print("Upload: clicked more options")
 
             tags_container = self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/ytcp-uploads-advanced/ytcp-form-input-container/div[1]/div[2]/ytcp-free-text-chip-bar/ytcp-chip-bar/div")
             tags_field = self.browser.find(By.ID, "text-input", tags_container)
             tags_field.send_keys(','.join(tags) + ',')
-            print("added tags")
+            print("Upload: added tags")
 
             kids_section = self.browser.find(By.NAME, "NOT_MADE_FOR_KIDS")
             self.browser.find(By.ID, "radioLabel", kids_section).click()
-
-            i=0
-
-            while True:
-                try:
-                    status_text = self.browser.find(By.XPATH, '/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[2]/div/div[1]/ytcp-video-upload-progress/span').text.lower()
-
-                    if 'process' in status_text:
-                        break
-                except Exception as e:
-                    print(e)
-                    
-                    i += 1
-
-                    if i >= 4:
-                        raise
-                
-                time.sleep(0.25)
+            print("Upload: did set NOT_MADE_FOR_KIDS")
             
             self.browser.find(By.ID, 'next-button').click()
             print('Upload: clicked first next')
@@ -113,18 +98,36 @@ class Youtube:
             self.browser.find(By.ID, 'radioLabel', public_main_button).click()
             print('Upload: set to public')
 
-            self.browser.find(By.ID, 'done-button').click()
-            print('Upload: published')
+            i=0
 
-            time.sleep(2.5)
-            self.browser.get(YT_URL)
+            while True:
+                try:
+                    done_button = self.browser.find(By.ID, 'done-button')
 
-            return True
-        except:
+                    if done_button.get_attribute("aria-disabled") == 'false':
+                        done_button.click()
+
+                        print('Upload: published')
+
+                        time.sleep(3)
+                        self.browser.get(YT_URL)
+
+                        return True
+                except Exception as e:
+                    print(e)
+
+                    i += 1
+
+                    if i >= 10:
+                        raise
+
+                time.sleep(1)
+        except Exception as e:
+            print(e)
             self.browser.get(YT_URL)
 
             return False
-    
+
     def check_analytics(self) -> None:
         self.browser.get(YT_STUDIO_URL)
     
