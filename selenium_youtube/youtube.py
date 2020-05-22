@@ -2,6 +2,7 @@ from typing import List, Dict, Optional
 import time, json
 
 from selenium_firefox.firefox import Firefox, By, Keys
+from ktimeout import timeout
 
 YT_URL='https://www.youtube.com'
 YT_STUDIO_URL='https://studio.youtube.com'
@@ -34,12 +35,41 @@ class Youtube:
                 self.browser.get(YT_URL)
                 time.sleep(1.5)
                 self.browser.save_cookies()
-        except Exception:
+        except Exception as e:
+            print(e)
             self.quit()
 
             raise
 
     def upload(
+        self,
+        video_path: str,
+        title: str,
+        description: str,
+        tags: List[str],
+        _timeout: Optional[int] = 60*3 # 3 min
+    ) -> bool:
+        if _timeout is not None:
+            try:
+                return timeout.run(
+                    timeout.partial(self.__upload, video_path, title, description, tags),
+                    _timeout
+                )
+            except Exception as e:
+                print(e)
+                self.browser.get(YT_URL)
+
+                return False
+        else:
+            return self.__upload(video_path, title, description, tags)
+
+    def check_analytics(self) -> None:
+        self.browser.get(YT_STUDIO_URL)
+    
+    def quit(self):
+        self.browser.driver.quit()
+
+    def __upload(
         self,
         video_path: str,
         title: str,
@@ -127,9 +157,3 @@ class Youtube:
             self.browser.get(YT_URL)
 
             return False
-
-    def check_analytics(self) -> None:
-        self.browser.get(YT_STUDIO_URL)
-    
-    def quit(self):
-        self.browser.driver.quit()
