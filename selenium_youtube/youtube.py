@@ -65,7 +65,12 @@ class Youtube:
 
     def check_analytics(self) -> None:
         self.browser.get(YT_STUDIO_URL)
-    
+
+        try:
+            self.browser.get(self.browser.find(By.XPATH, "//a[@id='menu-item-3']").get_attribute('href'))
+        except Exception as e:
+            print(e)
+
     def quit(self):
         self.browser.driver.quit()
 
@@ -84,7 +89,7 @@ class Youtube:
             time.sleep(1.5)
             self.browser.save_cookies()
 
-            self.browser.find(By.XPATH, "//input[@type='file']").send_keys(video_path) 
+            self.browser.find(By.XPATH, "//input[@type='file']").send_keys(video_path)
             print('Upload: uploaded video')
 
             title_field = self.browser.find(By.ID, 'textbox')
