@@ -8,5 +8,17 @@ pip install --upgrade selenium-youtube
 pip3 install --upgrade selenium-youtube
 ~~~~
 
+## Usage
+~~~~python
+from selenium_youtube.youtube import Youtube
+
+youtube = Youtube(
+    'path_to_cookies_folder',
+    'path_to_extensions_folder'
+)
+
+result = youtube.upload('path_to_video', 'title', 'description', ['tag1', 'tag2'])
+~~~~
+
 ## Dependencies
 geckodriver
