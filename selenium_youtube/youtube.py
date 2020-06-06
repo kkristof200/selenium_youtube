@@ -68,6 +68,8 @@ class Youtube:
             return self.__upload(video_path, title, description, tags)
 
     def get_current_channel_id(self) -> Optional[str]:
+        self.browser.get(YT_URL)
+
         try:
             return json.loads(
                 strings.between(
@@ -80,34 +82,27 @@ class Youtube:
     def load_video(self, video_id: str):
         self.browser.get(self.__video_url(video_id))
 
-    def comment_on_video(self, video_id: str, comment: str, pinned: bool = False) -> bool:
-        self.load_video(video_id)
+    def comment_on_video(
+        self,
+        video_id: str,
+        comment: str,
+        pinned: bool = False,
+        _timeout: Optional[int] = 15
+    ) -> bool:
+        if _timeout is not None:
+            try:
+                return timeout.run(
+                    timeout.partial(self.__comment_on_video, video_id, comment, pinned=pinned),
+                    _timeout
+                )
+            except Exception as e:
+                print(e)
+                self.browser.get(YT_URL)
 
-        try:
-            self.browser.scroll(350)
+                return False
+        else:
+            return self.__comment_on_video(video_id, comment, pinned=pinned)
 
-            self.browser.find(By.XPATH, "//div[@id='placeholder-area']").click()
-            self.browser.find(By.XPATH, "//div[@id='contenteditable-root']").send_keys(comment)
-            self.browser.find(By.XPATH, "//ytd-button-renderer[@id='submit-button' and @class='style-scope ytd-commentbox style-primary size-default']").click()
-
-            if not pinned:
-                return True
-
-            we = self.browser.find(By.CLASS_NAME, 'style-scope.ytd-comment-renderer')
-            self.browser.find(By.CLASS_NAME, 'dropdown-trigger.style-scope.ytd-menu-renderer', element=we).click()
-
-            we2 = self.browser.find(By.CLASS_NAME, 'style-scope.ytd-menu-popup-renderer')
-            self.browser.find(By.CLASS_NAME, 'yt-simple-endpoint.style-scope.ytd-menu-navigation-item-renderer', element=we2).click()
-
-            we3 = self.browser.find(By.XPATH, "//yt-confirm-dialog-renderer[@class='style-scope ytd-popup-container']")
-            self.browser.find(By.XPATH, "//paper-button[@id='button' and @class='style-scope yt-button-renderer style-primary size-default']", element=we3).click()
-
-            return True
-        except Exception as e:
-            print(e)
-
-            return False
-    
     def get_channel_video_ids(self, channel_id: Optional[str] = None) -> List[str]:
         video_ids = []
 
@@ -246,7 +241,37 @@ class Youtube:
             self.browser.get(YT_URL)
 
             return False, None
-    
+
+    def __comment_on_video(self, video_id: str, comment: str, pinned: bool = False) -> bool:
+        self.load_video(video_id)
+
+        try:
+            self.browser.scroll(350)
+
+            self.browser.find(By.XPATH, "//div[@id='placeholder-area']").click()
+            self.browser.find(By.XPATH, "//div[@id='contenteditable-root']").send_keys(comment)
+            self.browser.find(By.XPATH, "//ytd-button-renderer[@id='submit-button' and @class='style-scope ytd-commentbox style-primary size-default']").click()
+
+            if not pinned:
+                return True
+
+            time.sleep(4)
+
+            we = self.browser.find(By.CLASS_NAME, 'style-scope.ytd-comment-renderer')
+            self.browser.find(By.CLASS_NAME, 'dropdown-trigger.style-scope.ytd-menu-renderer', element=we).click()
+
+            we2 = self.browser.find(By.CLASS_NAME, 'style-scope.ytd-menu-popup-renderer')
+            self.browser.find(By.CLASS_NAME, 'yt-simple-endpoint.style-scope.ytd-menu-navigation-item-renderer', element=we2).click()
+
+            we3 = self.browser.find(By.XPATH, "//yt-confirm-dialog-renderer[@class='style-scope ytd-popup-container']")
+            self.browser.find(By.XPATH, "//paper-button[@id='button' and @class='style-scope yt-button-renderer style-primary size-default']", element=we3).click()
+
+            return True
+        except Exception as e:
+            print(e)
+
+            return False
+
     def __video_url(self, video_id: str) -> str:
         return YT_URL + '/watch?v=' + video_id
     
