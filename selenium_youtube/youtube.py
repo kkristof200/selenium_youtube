@@ -297,25 +297,8 @@ class Youtube:
             except Exception as e:
                 print(e)
 
-            # time.sleep(1)
             self.browser.scroll(300)
             time.sleep(5)
-
-            # i = 0
-            # max_try = 10
-            # sleep_time = 1
-
-            # while True:
-            #     i += 1
-            #     comments_threads = self.browser.find_all(By.XPATH, comments_threads_xpath)
-
-            #     if len(comments_threads) != len(old_comments_threads):
-            #         break
-
-            #     if i > max_try:
-            #         return True, False
-
-            #     time.sleep(sleep_time)
 
             comments_threads = self.browser.find_all(By.XPATH, comments_threads_xpath)
             old_comment_thread = None
@@ -325,11 +308,11 @@ class Youtube:
                 pinned = pinned_element is not None and pinned_element.is_displayed()
 
                 if pinned:
-                    print('skipping')
                     continue
 
                 try:
                     from selenium.webdriver.common.action_chains import ActionChains
+
                     # button_3_dots
                     button_3_dots = self.browser.find(By.XPATH, "//yt-icon-button[@id='button' and @class='dropdown-trigger style-scope ytd-menu-renderer']", element=comment_thread, timeout=2.5)
                     ActionChains(self.browser.driver).move_to_element(button_3_dots).perform()
