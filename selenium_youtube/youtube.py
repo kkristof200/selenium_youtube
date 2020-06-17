@@ -161,7 +161,7 @@ class Youtube:
 
                 if 'href' in elem.attrs and '/watch?v=' in elem['href']:
                     href = elem['href']
-                    vid_id = href.split('=')[-1]
+                    vid_id = href.split('=')[1]
 
                     if vid_id not in video_ids:
                         video_ids.append(vid_id)
