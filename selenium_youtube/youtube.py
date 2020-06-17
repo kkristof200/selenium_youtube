@@ -335,6 +335,8 @@ class Youtube:
                     # button_3_dots
                     button_3_dots = self.browser.find(By.XPATH, "//yt-icon-button[@id='button' and @class='dropdown-trigger style-scope ytd-menu-renderer']", element=comment_thread, timeout=2.5)
                     ActionChains(self.browser.driver).move_to_element(button_3_dots).perform()
+                    self.browser.scroll_to_element(button_3_dots)
+                    time.sleep(0.5)
                     button_3_dots.click()
 
                     popup_renderer_3_dots = self.browser.find(By.XPATH, "//ytd-menu-popup-renderer[@class='style-scope ytd-popup-container']", timeout=5)
