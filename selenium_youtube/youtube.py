@@ -319,7 +319,7 @@ class Youtube:
             except Exception as e:
                 print(e)
 
-            self.browser.scroll(150)
+            self.browser.scroll(100)
             time.sleep(5)
 
             for comment_thread in self.browser.find_all(By.XPATH, comments_threads_xpath):
