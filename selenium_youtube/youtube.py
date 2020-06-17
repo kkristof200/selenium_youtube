@@ -21,9 +21,10 @@ class Youtube:
         cookies_folder_path: str,
         extensions_folder_path: str,
         host: Optional[str] = None,
-        port: Optional[int] = None
+        port: Optional[int] = None,
+        disable_images: bool = False
     ):
-        self.browser = Firefox(cookies_folder_path, extensions_folder_path, host=host, port=port)
+        self.browser = Firefox(cookies_folder_path, extensions_folder_path, host=host, port=port, disable_images=disable_images)
 
         try:
             self.browser.get(YT_URL)
@@ -106,8 +107,13 @@ class Youtube:
         else:
             return self.__comment_on_video(video_id, comment, pinned=pinned)
 
-    def get_channel_video_ids(self, channel_id: Optional[str] = None) -> List[str]:
+    def get_channel_video_ids(
+        self,
+        channel_id: Optional[str] = None,
+        ignored_titles: Optional[List[str]] = None
+    ) -> List[str]:
         video_ids = []
+        ignored_titles = ignored_titles or []
 
         channel_id = channel_id or self.channel_id
 
@@ -137,11 +143,28 @@ class Youtube:
                     break
 
             soup = bs(self.browser.driver.page_source, 'lxml')
-            elems = soup.find_all('a', {'id':'thumbnail', 'class':'yt-simple-endpoint inline-block style-scope ytd-thumbnail'})
+            elems = soup.find_all('a', {'id':'video-title', 'class':'yt-simple-endpoint style-scope ytd-grid-video-renderer'})
 
             for elem in elems:
+                if 'title' in elem.attrs:
+                    should_continue = False
+                    title = elem['title'].strip().lower()
+
+                    for ignored_title in ignored_titles:
+                        if ignored_title.strip().lower() == title:
+                            should_continue = True
+
+                            break
+
+                    if should_continue:
+                        continue
+
                 if 'href' in elem.attrs and '/watch?v=' in elem['href']:
-                    video_ids.append(elem['href'].strip('/watch?v='))
+                    href = elem['href']
+                    vid_id = href.split('=')[-1]
+
+                    if vid_id not in video_ids:
+                        video_ids.append(vid_id)
         except Exception as e:
             print(e)
 
