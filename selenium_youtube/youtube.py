@@ -319,8 +319,8 @@ class Youtube:
             except Exception as e:
                 print(e)
 
-            self.browser.scroll(100)
-            time.sleep(5)
+            # self.browser.scroll(100)
+            time.sleep(2.5)
 
             for comment_thread in self.browser.find_all(By.XPATH, comments_threads_xpath):
                 pinned_element = self.browser.find(By.XPATH, "//yt-icon[@class='style-scope ytd-pinned-comment-badge-renderer']", element=comment_thread, timeout=0.5)
@@ -334,8 +334,12 @@ class Youtube:
 
                     # button_3_dots
                     button_3_dots = self.browser.find(By.XPATH, "//yt-icon-button[@id='button' and @class='dropdown-trigger style-scope ytd-menu-renderer']", element=comment_thread, timeout=2.5)
-                    ActionChains(self.browser.driver).move_to_element(button_3_dots).perform()
+                    # time.sleep(2.5)
+                    # ActionChains(self.browser.driver).move_to_element(button_3_dots).perform()
+                    # time.sleep(2.5)
                     self.browser.scroll_to_element(button_3_dots)
+                    time.sleep(0.5)
+                    self.browser.scroll(-150)
                     time.sleep(0.5)
                     button_3_dots.click()
 
