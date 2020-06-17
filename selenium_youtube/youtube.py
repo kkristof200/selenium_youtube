@@ -160,10 +160,9 @@ class Youtube:
                         continue
 
                 if 'href' in elem.attrs and '/watch?v=' in elem['href']:
-                    href = elem['href']
-                    vid_id = href.split('=')[1]
+                    vid_id = strings.between(elem['href'], '?v=', '&')
 
-                    if vid_id not in video_ids:
+                    if vid_id is not None and vid_id not in video_ids:
                         video_ids.append(vid_id)
         except Exception as e:
             print(e)
