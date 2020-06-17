@@ -319,13 +319,10 @@ class Youtube:
             except Exception as e:
                 print(e)
 
-            self.browser.scroll(300)
+            self.browser.scroll(150)
             time.sleep(5)
 
-            comments_threads = self.browser.find_all(By.XPATH, comments_threads_xpath)
-            old_comment_thread = None
-
-            for comment_thread in comments_threads:
+            for comment_thread in self.browser.find_all(By.XPATH, comments_threads_xpath):
                 pinned_element = self.browser.find(By.XPATH, "//yt-icon[@class='style-scope ytd-pinned-comment-badge-renderer']", element=comment_thread, timeout=0.5)
                 pinned = pinned_element is not None and pinned_element.is_displayed()
 
