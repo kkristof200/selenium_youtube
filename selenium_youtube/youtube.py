@@ -289,9 +289,9 @@ class Youtube:
             comments_threads_xpath = "//ytd-comment-thread-renderer[@class='style-scope ytd-item-section-renderer']"
             self.browser.scroll(350)
 
-            self.browser.find(By.XPATH, "//div[@id='placeholder-area']").click()
-            self.browser.find(By.XPATH, "//div[@id='contenteditable-root']").send_keys(comment)
-            self.browser.find(By.XPATH, "//ytd-button-renderer[@id='submit-button' and @class='style-scope ytd-commentbox style-primary size-default']").click()
+            self.browser.find(By.XPATH, "//div[@id='placeholder-area']", timeout=5).click()
+            self.browser.find(By.XPATH, "//div[@id='contenteditable-root']", timeout=0.5).send_keys(comment)
+            self.browser.find(By.XPATH, "//ytd-button-renderer[@id='submit-button' and @class='style-scope ytd-commentbox style-primary size-default']", timeout=0.5).click()
 
             if not pinned:
                 return True, False
@@ -343,7 +343,7 @@ class Youtube:
                     time.sleep(0.5)
                     button_3_dots.click()
 
-                    popup_renderer_3_dots = self.browser.find(By.XPATH, "//ytd-menu-popup-renderer[@class='style-scope ytd-popup-container']", timeout=5)
+                    popup_renderer_3_dots = self.browser.find(By.XPATH, "//ytd-menu-popup-renderer[@class='style-scope ytd-popup-container']", timeout=2)
 
                     # dropdown menu item (first)
                     self.browser.find(By.XPATH, "//a[@class='yt-simple-endpoint style-scope ytd-menu-navigation-item-renderer']", element=popup_renderer_3_dots, timeout=2.5).click()
