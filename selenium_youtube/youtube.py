@@ -24,7 +24,7 @@ class Youtube:
         port: Optional[int] = None,
         disable_images: bool = False
     ):
-        self.browser = Firefox(cookies_folder_path, extensions_folder_path, host=host, port=port, disable_images=disable_images)
+        self.browser = Firefox(cookies_folder_path, extensions_folder_path, host=host, port=port, disable_images=disable_images, full_screen=False)
 
         try:
             self.browser.get(YT_URL)
@@ -286,10 +286,13 @@ class Youtube:
         self.load_video(video_id)
 
         try:
-            comments_threads_xpath = "//ytd-comment-thread-renderer[@class='style-scope ytd-item-section-renderer']"
-            self.browser.scroll(350)
+            header = self.browser.find_by('div', id_='masthead-container', class_='style-scope ytd-app')
+            comment_field = self.browser.find(By.XPATH, "//div[@id='placeholder-area']", timeout=5)
 
-            self.browser.find(By.XPATH, "//div[@id='placeholder-area']", timeout=5).click()
+            self.browser.scroll_to_element(comment_field, header_element=header)
+            time.sleep(0.5)
+
+            comment_field.click()
             self.browser.find(By.XPATH, "//div[@id='contenteditable-root']", timeout=0.5).send_keys(comment)
             self.browser.find(By.XPATH, "//ytd-button-renderer[@id='submit-button' and @class='style-scope ytd-commentbox style-primary size-default']", timeout=0.5).click()
 
@@ -299,6 +302,8 @@ class Youtube:
             try:
                 dropdown_menu_xpath = "//yt-sort-filter-sub-menu-renderer[@class='style-scope ytd-comments-header-renderer']"
                 dropdown_menu = self.browser.find(By.XPATH, dropdown_menu_xpath)
+                self.browser.scroll_to_element(dropdown_menu, header_element=header)
+                time.sleep(0.5)
 
                 self.browser.find(By.XPATH, "//paper-button[@id='label' and @class='dropdown-trigger style-scope yt-dropdown-menu']", element=dropdown_menu, timeout=2.5).click()
 
@@ -322,7 +327,7 @@ class Youtube:
             # self.browser.scroll(100)
             time.sleep(2.5)
 
-            for comment_thread in self.browser.find_all(By.XPATH, comments_threads_xpath):
+            for comment_thread in self.browser.find_all(By.XPATH, "//ytd-comment-thread-renderer[@class='style-scope ytd-item-section-renderer']"):
                 pinned_element = self.browser.find(By.XPATH, "//yt-icon[@class='style-scope ytd-pinned-comment-badge-renderer']", element=comment_thread, timeout=0.5)
                 pinned = pinned_element is not None and pinned_element.is_displayed()
 
@@ -330,16 +335,10 @@ class Youtube:
                     continue
 
                 try:
-                    from selenium.webdriver.common.action_chains import ActionChains
-
                     # button_3_dots
                     button_3_dots = self.browser.find(By.XPATH, "//yt-icon-button[@id='button' and @class='dropdown-trigger style-scope ytd-menu-renderer']", element=comment_thread, timeout=2.5)
-                    # time.sleep(2.5)
-                    # ActionChains(self.browser.driver).move_to_element(button_3_dots).perform()
-                    # time.sleep(2.5)
-                    self.browser.scroll_to_element(button_3_dots)
-                    time.sleep(0.5)
-                    self.browser.scroll(-150)
+
+                    self.browser.scroll_to_element(button_3_dots, header_element=header)
                     time.sleep(0.5)
                     button_3_dots.click()
 
