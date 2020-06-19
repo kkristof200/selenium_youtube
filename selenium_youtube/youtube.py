@@ -284,6 +284,8 @@ class Youtube:
     # returns (commented_successfully, pinned_comment_successfully)
     def __comment_on_video(self, video_id: str, comment: str, pinned: bool = False) -> (bool, bool):
         self.load_video(video_id)
+        time.sleep(1)
+        self.browser.scroll(150)
 
         try:
             header = self.browser.find_by('div', id_='masthead-container', class_='style-scope ytd-app')
@@ -363,6 +365,7 @@ class Youtube:
                     # confirm button
                     print('comment: clicking confirm_button')
                     self.browser.find(By.XPATH, "//a[@class='yt-simple-endpoint style-scope yt-button-renderer']", element=confirm_button_container, timeout=2.5).click()
+                    time.sleep(2)
 
                     return True, True
                 except Exception as e:
