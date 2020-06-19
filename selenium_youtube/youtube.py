@@ -292,8 +292,11 @@ class Youtube:
             self.browser.scroll_to_element(comment_field, header_element=header)
             time.sleep(0.5)
 
+            print('comment: clicking comment_field')
             comment_field.click()
+            print('comment: sending keys')
             self.browser.find(By.XPATH, "//div[@id='contenteditable-root']", timeout=0.5).send_keys(comment)
+            print('comment: clicking post_comment')
             self.browser.find(By.XPATH, "//ytd-button-renderer[@id='submit-button' and @class='style-scope ytd-commentbox style-primary size-default']", timeout=0.5).click()
 
             if not pinned:
@@ -305,7 +308,10 @@ class Youtube:
                 self.browser.scroll_to_element(dropdown_menu, header_element=header)
                 time.sleep(0.5)
 
-                self.browser.find(By.XPATH, "//paper-button[@id='label' and @class='dropdown-trigger style-scope yt-dropdown-menu']", element=dropdown_menu, timeout=2.5).click()
+                dropdown_trigger_xpath = "//paper-button[@id='label' and @class='dropdown-trigger style-scope yt-dropdown-menu']"
+
+                print('comment: clicking dropdown_trigger (open)')
+                self.browser.find(By.XPATH, dropdown_trigger_xpath, element=dropdown_menu, timeout=2.5).click()
 
                 try:
                     dropdown_menu = self.browser.find(By.XPATH, dropdown_menu_xpath)
@@ -315,12 +321,15 @@ class Youtube:
 
                     if last_dropdown_element.get_attribute('aria-selected') == 'false':
                         time.sleep(0.25)
+                        print('comment: clicking last_dropdown_element')
                         last_dropdown_element.click()
                     else:
-                        self.browser.find(By.XPATH, "//paper-button[@id='label' and @class='dropdown-trigger style-scope yt-dropdown-menu']", element=dropdown_menu, timeout=2.5).click()
+                        print('comment: clicking dropdown_trigger (close) (did not click last_dropdown_element (did not find it))')
+                        self.browser.find(By.XPATH, dropdown_trigger_xpath, element=dropdown_menu, timeout=2.5).click()
                 except Exception as e:
                     print(e)
-                    self.browser.find(By.XPATH, "//paper-button[@id='label' and @class='dropdown-trigger style-scope yt-dropdown-menu']", element=dropdown_menu, timeout=2.5).click()
+                    print('comment: clicking dropdown_trigger (close) (did not click last_dropdown_element (error occured))')
+                    self.browser.find(By.XPATH, dropdown_trigger_xpath, element=dropdown_menu, timeout=2.5).click()
             except Exception as e:
                 print(e)
 
@@ -340,16 +349,19 @@ class Youtube:
 
                     self.browser.scroll_to_element(button_3_dots, header_element=header)
                     time.sleep(0.5)
+                    print('comment: clicking button_3_dots')
                     button_3_dots.click()
 
                     popup_renderer_3_dots = self.browser.find(By.XPATH, "//ytd-menu-popup-renderer[@class='style-scope ytd-popup-container']", timeout=2)
 
                     # dropdown menu item (first)
+                    print('comment: clicking button_3_dots-dropdown_menu_item (to pin it)')
                     self.browser.find(By.XPATH, "//a[@class='yt-simple-endpoint style-scope ytd-menu-navigation-item-renderer']", element=popup_renderer_3_dots, timeout=2.5).click()
 
                     confirm_button_container = self.browser.find(By.XPATH, "//yt-button-renderer[@id='confirm-button' and @class='style-scope yt-confirm-dialog-renderer style-primary size-default']", timeout=5)
 
                     # confirm button
+                    print('comment: clicking confirm_button')
                     self.browser.find(By.XPATH, "//a[@class='yt-simple-endpoint style-scope yt-button-renderer']", element=confirm_button_container, timeout=2.5).click()
 
                     return True, True
