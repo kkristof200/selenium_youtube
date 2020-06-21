@@ -1,51 +1,112 @@
+# --------------------------------------------------------------- Imports ---------------------------------------------------------------- #
+
+# System
 from typing import List, Dict, Optional
 import time, json
 
+# Pip
 from selenium_firefox.firefox import Firefox, By, Keys
 from ktimeout import timeout
 from kcu import strings
 
 from bs4 import BeautifulSoup as bs
 
-YT_URL='https://www.youtube.com'
-YT_STUDIO_URL='https://studio.youtube.com'
-YT_UPLOAD_URL='https://www.youtube.com/upload'
+# ---------------------------------------------------------------------------------------------------------------------------------------- #
 
-MAX_TITLE_CHAR_LEN=100
-MAX_DESCRIPTION_CHAR_LEN=5000
-MAX_TAGS_CHAR_LEN=500
+
+
+# --------------------------------------------------------------- Defines ---------------------------------------------------------------- #
+
+YT_URL          = 'https://www.youtube.com'
+YT_STUDIO_URL   = 'https://studio.youtube.com'
+YT_UPLOAD_URL   = 'https://www.youtube.com/upload'
+YT_LOGIN_URL    = 'https://accounts.google.com/signin/v2/identifier?service=youtube'
+
+MAX_TITLE_CHAR_LEN          = 100
+MAX_DESCRIPTION_CHAR_LEN    = 5000
+MAX_TAGS_CHAR_LEN           = 500
+
+LOGIN_INFO_COOKIE_NAME = 'LOGIN_INFO'
+
+# ---------------------------------------------------------------------------------------------------------------------------------------- #
+
+
+
+# ----------------------------------------------------------- class: Youtube ------------------------------------------------------------- #
 
 class Youtube:
+
+    # ------------------------------------------------------------- Init ------------------------------------------------------------- #
+
     def __init__(
         self,
         cookies_folder_path: str,
         extensions_folder_path: str,
+        email: Optional[str] = None,
+        password: Optional[str] = None,
         host: Optional[str] = None,
         port: Optional[int] = None,
-        disable_images: bool = False
+        full_screen: bool = False,
+        disable_images: bool = False,
+        # always_needs_login: bool = True
     ):
-        self.browser = Firefox(cookies_folder_path, extensions_folder_path, host=host, port=port, disable_images=disable_images, full_screen=False)
+        self.browser = Firefox(cookies_folder_path, extensions_folder_path, host=host, port=port, full_screen=full_screen, disable_images=disable_images)
+        self.channel_id = None
 
         try:
-            self.browser.get(YT_URL)
-            time.sleep(1.5)
+            loggedd_in = self.browser.login_via_cookies(YT_URL, LOGIN_INFO_COOKIE_NAME)
 
-            if self.browser.has_cookies_for_current_website():
-                self.browser.load_cookies()
-                time.sleep(1.5)
-                self.browser.refresh()
-            else:
-                input('Log in then press enter')
+            if loggedd_in:
+                time.sleep(0.5)
                 self.browser.get(YT_URL)
-                time.sleep(1.5)
+                time.sleep(0.5)
                 self.browser.save_cookies()
-            
-            self.channel_id = self.get_current_channel_id()
+            else:
+                loggedd_in = self.login(email=email, password=password)
+
+            if loggedd_in:
+                self.channel_id = self.get_current_channel_id()
         except Exception as e:
             print(e)
             self.quit()
 
             raise
+
+
+    # ------------------------------------------------------ Public properties ------------------------------------------------------- #
+
+    @property
+    def is_logged_in(self) -> bool:
+        return self.browser.has_cookie(LOGIN_INFO_COOKIE_NAME)
+
+
+    # -------------------------------------------------------- Public methods -------------------------------------------------------- #
+
+    def login(self, email: Optional[str], password: Optional[str]) -> bool:
+        org_url = self.browser.driver.current_url
+        self.browser.get(YT_URL)
+        time.sleep(0.5)
+
+        logged_in = self.is_logged_in
+
+        if not logged_in and email is not None and password is not None:
+            logged_in = self.__login_auto(email, password)
+        
+        if not logged_in:
+            print('Could not log you in automatically.')
+            logged_in = self.__login_manual()
+
+        if logged_in:
+            time.sleep(0.5)
+            self.browser.get(YT_URL)
+            time.sleep(0.5)
+
+            self.browser.save_cookies()
+
+        time.sleep(0.5)
+        self.browser.get(org_url)
+
+        return logged_in
 
     def upload(
         self,
@@ -183,6 +244,9 @@ class Youtube:
 
     def quit(self):
         self.browser.driver.quit()
+
+
+    # ------------------------------------------------------- Private methods -------------------------------------------------------- #
 
     def __upload(
         self,
@@ -381,8 +445,52 @@ class Youtube:
 
             return False, False
 
+    def __login_auto(self, email: str, password: str) -> bool:
+        self.browser.get(YT_LOGIN_URL)
+        time.sleep(0.5)
+
+        try:
+            with timeout(30):
+                email_field = self.browser.find_by('input', { 'id': 'identifierId', 'type': 'email' })
+                email_field.click()
+                self.browser.send_keys_delay_random(email_field, email)
+                time.sleep(1)
+                self.browser.find_by('div', {'class': 'U26fgb O0WRkf zZhnYe e3Duub C0oVfc qIypjc TrZEUc M9Bg4d', 'role': 'button'}).click()
+                time.sleep(1)
+
+                pass_field = self.browser.find_by('input', { 'type': 'password' })
+                pass_field.click()
+                self.browser.send_keys_delay_random(pass_field, password)
+                time.sleep(1)
+                self.browser.find_by('div', {'class': 'U26fgb O0WRkf zZhnYe e3Duub C0oVfc qIypjc TrZEUc M9Bg4d', 'role': 'button'}).click()
+                time.sleep(1)
+        except Exception as e:
+            print('__login_auto', e)
+
+        self.browser.get(YT_URL)
+        time.sleep(0.5)
+
+        return self.is_logged_in
+    
+    def __login_manual(self) -> bool:
+        self.browser.get(YT_LOGIN_URL)
+        time.sleep(0.5)
+
+        try:
+            input('Log in then press return')
+        except Exception as e:
+            print('__login_manual', e)
+
+        self.browser.get(YT_URL)
+        time.sleep(0.5)
+
+        return self.is_logged_in
+    
     def __video_url(self, video_id: str) -> str:
         return YT_URL + '/watch?v=' + video_id
     
     def __channel_videos_url(self, channel_id: str) -> str:
         return YT_URL + '/channel/' + channel_id + '/videos?view=0&sort=da&flow=grid'
+
+
+# ---------------------------------------------------------------------------------------------------------------------------------------- #
