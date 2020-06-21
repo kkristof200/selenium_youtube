@@ -47,24 +47,18 @@ class Youtube:
         host: Optional[str] = None,
         port: Optional[int] = None,
         full_screen: bool = False,
-        disable_images: bool = False,
-        # always_needs_login: bool = True
+        disable_images: bool = False
     ):
         self.browser = Firefox(cookies_folder_path, extensions_folder_path, host=host, port=port, full_screen=full_screen, disable_images=disable_images)
         self.channel_id = None
 
         try:
-            loggedd_in = self.browser.login_via_cookies(YT_URL, LOGIN_INFO_COOKIE_NAME)
-
-            if loggedd_in:
+            if self.browser.login_via_cookies(YT_URL, LOGIN_INFO_COOKIE_NAME) or self.login(email=email, password=password):
                 time.sleep(0.5)
                 self.browser.get(YT_URL)
                 time.sleep(0.5)
                 self.browser.save_cookies()
-            else:
-                loggedd_in = self.login(email=email, password=password)
-
-            if loggedd_in:
+                time.sleep(0.5)
                 self.channel_id = self.get_current_channel_id()
         except Exception as e:
             print(e)
@@ -450,7 +444,7 @@ class Youtube:
         time.sleep(0.5)
 
         try:
-            with timeout(30):
+            with timeout.timeout(30):
                 email_field = self.browser.find_by('input', { 'id': 'identifierId', 'type': 'email' })
                 email_field.click()
                 self.browser.send_keys_delay_random(email_field, email)
