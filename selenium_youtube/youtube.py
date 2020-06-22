@@ -452,7 +452,12 @@ class Youtube:
                 self.browser.find_by('div', {'id': 'identifierNext', 'role': 'button'}).click()
                 time.sleep(1)
 
-                pass_field = self.browser.find_by('input', { 'type': 'password' })
+                from selenium.webdriver.common.action_chains import ActionChains
+                action = ActionChains(self.browser.driver)
+
+                pass_container = self.browser.find_by('div', { 'id': 'password', 'jscontroller': 'pxq3x' })
+                pass_field = self.browser.find_by('input', { 'type': 'password' }, in_element=pass_container)
+                action.move_to_element(pass_field).perform()
                 pass_field.click()
                 self.browser.send_keys_delay_random(pass_field, password)
                 time.sleep(1)
