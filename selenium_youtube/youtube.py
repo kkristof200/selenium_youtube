@@ -449,14 +449,14 @@ class Youtube:
                 email_field.click()
                 self.browser.send_keys_delay_random(email_field, email)
                 time.sleep(1)
-                self.browser.find_by('div', {'class': 'U26fgb O0WRkf zZhnYe e3Duub C0oVfc qIypjc TrZEUc M9Bg4d', 'role': 'button'}).click()
+                self.browser.find_by('div', {'id': 'identifierNext', 'role': 'button'}).click()
                 time.sleep(1)
 
                 pass_field = self.browser.find_by('input', { 'type': 'password' })
                 pass_field.click()
                 self.browser.send_keys_delay_random(pass_field, password)
                 time.sleep(1)
-                self.browser.find_by('div', {'class': 'U26fgb O0WRkf zZhnYe e3Duub C0oVfc qIypjc TrZEUc M9Bg4d', 'role': 'button'}).click()
+                self.browser.find_by('div', {'id': 'passwordNext', 'role': 'button'}).click()
                 time.sleep(1)
         except Exception as e:
             print('__login_auto', e)
