@@ -446,7 +446,7 @@ class Youtube:
                 email_field.click()
                 self.browser.send_keys_delay_random(email_field, email)
                 time.sleep(1)
-                self.browser.find_by('div', {'id': 'identifierNext', 'role': 'button'}).click()
+                self.browser.find_by('div', {'jscontroller': 'VXdfxd', 'role': 'button'}).click()
                 time.sleep(1)
 
                 from selenium.webdriver.common.action_chains import ActionChains
@@ -458,7 +458,7 @@ class Youtube:
                 pass_field.click()
                 self.browser.send_keys_delay_random(pass_field, password)
                 time.sleep(1)
-                self.browser.find_by('div', {'id': 'passwordNext', 'role': 'button'}).click()
+                self.browser.find_by('div', {'jscontroller': 'VXdfxd', 'role': 'button'}).click()
                 time.sleep(1)
         except Exception as e:
             print('__login_auto', e)
