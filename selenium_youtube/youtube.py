@@ -109,7 +109,7 @@ class Youtube:
         description: str,
         tags: List[str],
         _timeout: Optional[int] = 60*3, # 3 min
-        extra_sleep_after_upload: int = 0
+        extra_sleep_after_upload: Optional[int] = None
     ) -> (bool, Optional[str]):
         if _timeout is not None:
             try:
@@ -249,7 +249,7 @@ class Youtube:
         title: str,
         description: str,
         tags: List[str],
-        extra_sleep_after_upload: int = 0
+        extra_sleep_after_upload: Optional[int] = None
     ) -> (bool, Optional[str]):
         self.browser.get(YT_URL)
         time.sleep(1.5)
@@ -310,7 +310,8 @@ class Youtube:
 
             i=0
 
-            time.sleep(extra_sleep_after_upload)
+            if extra_sleep_after_upload is not None and extra_sleep_after_upload > 0:
+                time.sleep(extra_sleep_after_upload)
 
             while True:
                 try:
