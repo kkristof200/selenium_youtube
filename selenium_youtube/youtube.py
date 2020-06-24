@@ -108,12 +108,13 @@ class Youtube:
         title: str,
         description: str,
         tags: List[str],
-        _timeout: Optional[int] = 60*3 # 3 min
+        _timeout: Optional[int] = 60*3, # 3 min
+        extra_sleep_after_upload: int = 0
     ) -> (bool, Optional[str]):
         if _timeout is not None:
             try:
                 return timeout.run(
-                    timeout.partial(self.__upload, video_path, title, description, tags),
+                    timeout.partial(self.__upload, video_path, title, description, tags, extra_sleep_after_upload=extra_sleep_after_upload),
                     _timeout
                 )
             except Exception as e:
@@ -122,7 +123,7 @@ class Youtube:
 
                 return False, None
         else:
-            return self.__upload(video_path, title, description, tags)
+            return self.__upload(video_path, title, description, tags, extra_sleep_after_upload=extra_sleep_after_upload)
 
     def get_current_channel_id(self) -> Optional[str]:
         self.browser.get(YT_URL)
@@ -247,7 +248,8 @@ class Youtube:
         video_path: str,
         title: str,
         description: str,
-        tags: List[str]
+        tags: List[str],
+        extra_sleep_after_upload: int = 0
     ) -> (bool, Optional[str]):
         self.browser.get(YT_URL)
         time.sleep(1.5)
