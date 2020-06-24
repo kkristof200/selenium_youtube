@@ -310,6 +310,8 @@ class Youtube:
 
             i=0
 
+            time.sleep(extra_sleep_after_upload)
+
             while True:
                 try:
                     done_button = self.browser.find(By.ID, 'done-button')
