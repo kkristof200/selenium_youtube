@@ -113,10 +113,8 @@ class Youtube:
     ) -> (bool, Optional[str]):
         if _timeout is not None:
             try:
-                return timeout.run(
-                    timeout.partial(self.__upload, video_path, title, description, tags, extra_sleep_after_upload=extra_sleep_after_upload),
-                    _timeout
-                )
+                with timeout.timeout(_timeout):
+                    return self.__upload(video_path, title, description, tags, extra_sleep_after_upload=extra_sleep_after_upload)
             except Exception as e:
                 print(e)
                 self.browser.get(YT_URL)
@@ -151,10 +149,8 @@ class Youtube:
     ) -> (bool, bool):
         if _timeout is not None:
             try:
-                return timeout.run(
-                    timeout.partial(self.__comment_on_video, video_id, comment, pinned=pinned),
-                    _timeout
-                )
+                with timeout.timeout(_timeout):
+                    return self.__comment_on_video(video_id, comment, pinned=pinned)
             except Exception as e:
                 print(e)
                 self.browser.get(YT_URL)
