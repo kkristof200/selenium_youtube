@@ -116,8 +116,8 @@ class Youtube:
                 with timeout.timeout(_timeout):
                     return self.__upload(video_path, title, description, tags, extra_sleep_after_upload=extra_sleep_after_upload)
             except Exception as e:
-                print(e)
-                self.browser.get(YT_URL)
+                print('Upload', e)
+                # self.browser.get(YT_URL)
 
                 return False, None
         else:
@@ -133,7 +133,7 @@ class Youtube:
                 ) + '}'
             )['responseContext']['serviceTrackingParams'][2]['params'][0]['value']
         except Exception as e:
-            print(e)
+            print('get_current_channel_id', e)
 
             return None
 
@@ -152,8 +152,8 @@ class Youtube:
                 with timeout.timeout(_timeout):
                     return self.__comment_on_video(video_id, comment, pinned=pinned)
             except Exception as e:
-                print(e)
-                self.browser.get(YT_URL)
+                print('Comment', e)
+                # self.browser.get(YT_URL)
 
                 return False, False
         else:
