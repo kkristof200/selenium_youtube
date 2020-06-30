@@ -110,19 +110,20 @@ class Youtube:
         description: str,
         tags: List[str],
         _timeout: Optional[int] = 60*3, # 3 min
-        extra_sleep_after_upload: Optional[int] = None
+        extra_sleep_after_upload: Optional[int] = None,
+        extra_sleep_before_publish: Optional[int] = None
     ) -> (bool, Optional[str]):
         if _timeout is not None:
             try:
                 with timeout.timeout(_timeout):
-                    return self.__upload(video_path, title, description, tags, extra_sleep_after_upload=extra_sleep_after_upload)
+                    return self.__upload(video_path, title, description, tags, extra_sleep_after_upload=extra_sleep_after_upload, extra_sleep_before_publish=extra_sleep_before_publish)
             except Exception as e:
                 print('Upload', e)
                 # self.browser.get(YT_URL)
 
                 return False, None
         else:
-            return self.__upload(video_path, title, description, tags, extra_sleep_after_upload=extra_sleep_after_upload)
+            return self.__upload(video_path, title, description, tags, extra_sleep_after_upload=extra_sleep_after_upload, extra_sleep_before_publish=extra_sleep_before_publish)
 
     def get_current_channel_id(self) -> Optional[str]:
         self.browser.get(YT_URL)
@@ -246,7 +247,8 @@ class Youtube:
         title: str,
         description: str,
         tags: List[str],
-        extra_sleep_after_upload: Optional[int] = None
+        extra_sleep_after_upload: Optional[int] = None,
+        extra_sleep_before_publish: Optional[int] = None
     ) -> (bool, Optional[str]):
         self.browser.get(YT_URL)
         time.sleep(1.5)
@@ -258,6 +260,9 @@ class Youtube:
 
             self.browser.find(By.XPATH, "//input[@type='file']").send_keys(video_path)
             print('Upload: uploaded video')
+
+            if extra_sleep_after_upload is not None and extra_sleep_after_upload > 0:
+                time.sleep(extra_sleep_after_upload)
 
             title_field = self.browser.find_by('div', id_='textbox')
             time.sleep(0.5)
@@ -307,8 +312,8 @@ class Youtube:
 
             i=0
 
-            if extra_sleep_after_upload is not None and extra_sleep_after_upload > 0:
-                time.sleep(extra_sleep_after_upload)
+            if extra_sleep_before_publish is not None and extra_sleep_before_publish > 0:
+                time.sleep(extra_sleep_before_publish)
 
             while True:
                 try:
