@@ -1,7 +1,7 @@
 # --------------------------------------------------------------- Imports ---------------------------------------------------------------- #
 
 # System
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Callable
 import time, json
 
 # Pip
@@ -48,10 +48,16 @@ class Youtube:
         port: Optional[int] = None,
         screen_size: Optional[Tuple[int, int]] = None,
         full_screen: bool = False,
-        disable_images: bool = False
+        disable_images: bool = False,
+        login_prompt_callback: Optional[Callable[[str], None]] = None
     ):
         self.browser = Firefox(cookies_folder_path, extensions_folder_path, host=host, port=port, screen_size=screen_size, full_screen=full_screen, disable_images=disable_images)
         self.channel_id = None
+
+        try:
+            self.__internal_channel_id = cookies_folder_path.strip('/').split('/')[-1]
+        except:
+            self.__internal_channel_id = cookies_folder_path
 
         try:
             if self.browser.login_via_cookies(YT_URL, LOGIN_INFO_COOKIE_NAME) or self.login(email=email, password=password):
@@ -61,6 +67,8 @@ class Youtube:
                 self.browser.save_cookies()
                 time.sleep(0.5)
                 self.channel_id = self.get_current_channel_id()
+            elif email is not None and password is not None:
+                self.login(email, password, login_prompt_callback=login_prompt_callback)
         except Exception as e:
             print(e)
             self.quit()
@@ -77,7 +85,12 @@ class Youtube:
 
     # -------------------------------------------------------- Public methods -------------------------------------------------------- #
 
-    def login(self, email: Optional[str], password: Optional[str]) -> bool:
+    def login(
+        self,
+        email: Optional[str],
+        password: Optional[str],
+        login_prompt_callback: Optional[Callable[[str], None]] = None
+    ) -> bool:
         org_url = self.browser.driver.current_url
         self.browser.get(YT_URL)
         time.sleep(0.5)
@@ -89,7 +102,7 @@ class Youtube:
         
         if not logged_in:
             print('Could not log you in automatically.')
-            logged_in = self.__login_manual()
+            logged_in = self.__login_manual(login_prompt_callback=login_prompt_callback)
 
         if logged_in:
             time.sleep(0.5)
@@ -475,11 +488,14 @@ class Youtube:
 
         return self.is_logged_in
     
-    def __login_manual(self) -> bool:
+    def __login_manual(self, login_prompt_callback: Optional[Callable[[str], None]] = None) -> bool:
         self.browser.get(YT_LOGIN_URL)
         time.sleep(0.5)
 
         try:
+            if login_prompt_callback is not None:
+                login_prompt_callback(self.__internal_channel_id + ' needs manual input to log in.')
+
             input('Log in then press return')
         except Exception as e:
             print('__login_manual', e)
