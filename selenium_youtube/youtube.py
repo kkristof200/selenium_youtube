@@ -1,7 +1,7 @@
 # --------------------------------------------------------------- Imports ---------------------------------------------------------------- #
 
 # System
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 import time, json
 
 # Pip
@@ -46,10 +46,11 @@ class Youtube:
         password: Optional[str] = None,
         host: Optional[str] = None,
         port: Optional[int] = None,
+        screen_size: Optional[Tuple[int, int]] = None,
         full_screen: bool = False,
         disable_images: bool = False
     ):
-        self.browser = Firefox(cookies_folder_path, extensions_folder_path, host=host, port=port, full_screen=full_screen, disable_images=disable_images)
+        self.browser = Firefox(cookies_folder_path, extensions_folder_path, host=host, port=port, screen_size=screen_size, full_screen=full_screen, disable_images=disable_images)
         self.channel_id = None
 
         try:
