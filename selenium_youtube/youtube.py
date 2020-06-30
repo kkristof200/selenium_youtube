@@ -60,15 +60,13 @@ class Youtube:
             self.__internal_channel_id = cookies_folder_path
 
         try:
-            if self.browser.login_via_cookies(YT_URL, LOGIN_INFO_COOKIE_NAME) or self.login(email=email, password=password):
+            if self.browser.login_via_cookies(YT_URL, LOGIN_INFO_COOKIE_NAME) or self.login(email=email, password=password, login_prompt_callback=login_prompt_callback):
                 time.sleep(0.5)
                 self.browser.get(YT_URL)
                 time.sleep(0.5)
                 self.browser.save_cookies()
                 time.sleep(0.5)
                 self.channel_id = self.get_current_channel_id()
-            elif email is not None and password is not None:
-                self.login(email, password, login_prompt_callback=login_prompt_callback)
         except Exception as e:
             print(e)
             self.quit()
