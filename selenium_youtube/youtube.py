@@ -359,6 +359,10 @@ class Youtube:
         self.load_video(video_id)
         time.sleep(1)
         self.browser.scroll(150)
+        time.sleep(1)
+        self.browser.scroll(100)
+        time.sleep(1)
+        self.browser.scroll(100)
 
         try:
             header = self.browser.find_by('div', id_='masthead-container', class_='style-scope ytd-app')
