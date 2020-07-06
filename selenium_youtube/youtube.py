@@ -328,28 +328,41 @@ class Youtube:
 
             while True:
                 try:
-                    done_button = self.browser.find(By.ID, 'done-button')
+                    if 'finished' in self.browser.find_by('span', { 'class': 'progress-label style-scope ytcp-video-upload-progress' }, timeout=0.25).text.lower():
+                        done_button = self.browser.find(By.ID, 'done-button')
 
-                    if done_button.get_attribute('aria-disabled') == 'false':
-                        done_button.click()
+                        if done_button.get_attribute('aria-disabled') == 'false':
+                            done_button.click()
 
-                        print('Upload: published')
+                            print('Upload: published')
 
-                        time.sleep(3)
-                        self.browser.get(YT_URL)
+                            time.sleep(3)
+                            self.browser.get(YT_URL)
 
-                        return True, video_id
+                            return True, video_id
                 except Exception as e:
                     print(e)
-
                     i += 1
 
                     if i >= 10:
+                        done_button = self.browser.find(By.ID, 'done-button')
+
+                        if done_button.get_attribute('aria-disabled') == 'false':
+                            done_button.click()
+
+                            print('Upload: published')
+
+                            time.sleep(3)
+                            self.browser.get(YT_URL)
+
+                            return True, video_id
+
                         raise
 
                 time.sleep(1)
         except Exception as e:
             print(e)
+                
             self.browser.get(YT_URL)
 
             return False, None
