@@ -328,8 +328,7 @@ class Youtube:
 
             while True:
                 try:
-                    progress_label = self.browser.find_by('span', { 'class': 'progress-label style-scope ytcp-video-upload-progress' }, timeout=0.1)
-                    or self.browser.find_by('span', { 'class': 'progress-label-old style-scope ytcp-video-upload-progress' }, timeout=0.1)
+                    progress_label = self.browser.find_by('span', { 'class': 'progress-label style-scope ytcp-video-upload-progress' }, timeout=0.1) or self.browser.find_by('span', { 'class': 'progress-label-old style-scope ytcp-video-upload-progress' }, timeout=0.1)
                     progress_label_text = progress_label.text.lower()
                     
                     if 'finished' in progress_label_text or 'process' in progress_label_text:
