@@ -11,6 +11,9 @@ from kcu import strings
 
 from bs4 import BeautifulSoup as bs
 
+# Local
+from .visibility import Visibility
+
 # ---------------------------------------------------------------------------------------------------------------------------------------- #
 
 
@@ -120,22 +123,25 @@ class Youtube:
         title: str,
         description: str,
         tags: List[str],
+        made_for_kids: bool = False,
+        visibility: Visibility = Visibility.PUBLIC,
         thumbnail_image_path: Optional[str] = None,
         _timeout: Optional[int] = 60*3, # 3 min
         extra_sleep_after_upload: Optional[int] = None,
         extra_sleep_before_publish: Optional[int] = None
     ) -> (bool, Optional[str]):
+
         if _timeout is not None:
             try:
                 with timeout.timeout(_timeout):
-                    return self.__upload(video_path, title, description, tags, thumbnail_image_path=thumbnail_image_path, extra_sleep_after_upload=extra_sleep_after_upload, extra_sleep_before_publish=extra_sleep_before_publish)
+                    return self.__upload(video_path, title, description, tags, made_for_kids=made_for_kids, visibility=visibility, thumbnail_image_path=thumbnail_image_path, extra_sleep_after_upload=extra_sleep_after_upload, extra_sleep_before_publish=extra_sleep_before_publish)
             except Exception as e:
                 print('Upload', e)
                 # self.browser.get(YT_URL)
 
                 return False, None
         else:
-            return self.__upload(video_path, title, description, tags, thumbnail_image_path=thumbnail_image_path, extra_sleep_after_upload=extra_sleep_after_upload, extra_sleep_before_publish=extra_sleep_before_publish)
+            return self.__upload(video_path, title, description, tags, made_for_kids=made_for_kids, visibility=visibility, thumbnail_image_path=thumbnail_image_path, extra_sleep_after_upload=extra_sleep_after_upload, extra_sleep_before_publish=extra_sleep_before_publish)
 
     def get_current_channel_id(self) -> Optional[str]:
         self.browser.get(YT_URL)
@@ -259,6 +265,8 @@ class Youtube:
         title: str,
         description: str,
         tags: List[str],
+        made_for_kids: bool = False,
+        visibility: Visibility = Visibility.PUBLIC,
         thumbnail_image_path: Optional[str] = None,
         extra_sleep_after_upload: Optional[int] = None,
         extra_sleep_before_publish: Optional[int] = None
@@ -301,9 +309,14 @@ class Youtube:
             tags_field.send_keys(','.join(tags) + ',')
             print("Upload: added tags")
 
-            kids_section = self.browser.find(By.NAME, "NOT_MADE_FOR_KIDS")
+            if made_for_kids:
+                kids_selection_name = "MADE_FOR_KIDS"
+            else:
+                kids_selection_name = "NOT_MADE_FOR_KIDS"
+
+            kids_section = self.browser.find(By.NAME, kids_selection_name)
             self.browser.find(By.ID, "radioLabel", kids_section).click()
-            print("Upload: did set NOT_MADE_FOR_KIDS")
+            print('Upload: did set', kids_selection_name)
 
             if thumbnail_image_path is not None:
                 try:
@@ -318,9 +331,9 @@ class Youtube:
             self.browser.find(By.ID, 'next-button').click()
             print('Upload: clicked second next')
 
-            public_main_button = self.browser.find(By.NAME, "PUBLIC")
-            self.browser.find(By.ID, 'radioLabel', public_main_button).click()
-            print('Upload: set to public')
+            visibility_main_button = self.browser.find(By.NAME, visibility.name)
+            self.browser.find(By.ID, 'radioLabel', visibility_main_button).click()
+            print('Upload: set to', visibility.name)
 
             try:
                 video_url_container = self.browser.find(By.XPATH, "//span[@class='video-url-fadeable style-scope ytcp-video-info']", timeout=2.5)
