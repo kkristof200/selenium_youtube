@@ -120,6 +120,7 @@ class Youtube:
         title: str,
         description: str,
         tags: List[str],
+        thumbnail_image_path: Optional[str] = None,
         _timeout: Optional[int] = 60*3, # 3 min
         extra_sleep_after_upload: Optional[int] = None,
         extra_sleep_before_publish: Optional[int] = None
@@ -127,14 +128,14 @@ class Youtube:
         if _timeout is not None:
             try:
                 with timeout.timeout(_timeout):
-                    return self.__upload(video_path, title, description, tags, extra_sleep_after_upload=extra_sleep_after_upload, extra_sleep_before_publish=extra_sleep_before_publish)
+                    return self.__upload(video_path, title, description, tags, thumbnail_image_path=thumbnail_image_path, extra_sleep_after_upload=extra_sleep_after_upload, extra_sleep_before_publish=extra_sleep_before_publish)
             except Exception as e:
                 print('Upload', e)
                 # self.browser.get(YT_URL)
 
                 return False, None
         else:
-            return self.__upload(video_path, title, description, tags, extra_sleep_after_upload=extra_sleep_after_upload, extra_sleep_before_publish=extra_sleep_before_publish)
+            return self.__upload(video_path, title, description, tags, thumbnail_image_path=thumbnail_image_path, extra_sleep_after_upload=extra_sleep_after_upload, extra_sleep_before_publish=extra_sleep_before_publish)
 
     def get_current_channel_id(self) -> Optional[str]:
         self.browser.get(YT_URL)
@@ -258,6 +259,7 @@ class Youtube:
         title: str,
         description: str,
         tags: List[str],
+        thumbnail_image_path: Optional[str] = None,
         extra_sleep_after_upload: Optional[int] = None,
         extra_sleep_before_publish: Optional[int] = None
     ) -> (bool, Optional[str]):
@@ -302,6 +304,13 @@ class Youtube:
             kids_section = self.browser.find(By.NAME, "NOT_MADE_FOR_KIDS")
             self.browser.find(By.ID, "radioLabel", kids_section).click()
             print("Upload: did set NOT_MADE_FOR_KIDS")
+
+            if thumbnail_image_path is not None:
+                try:
+                    self.browser.find_by('input', id_='file-loader')
+                    time.sleep(0.5)
+                except Exception as e:
+                    print('Upload: Thumbnail error: ', e)
             
             self.browser.find(By.ID, 'next-button').click()
             print('Upload: clicked first next')
