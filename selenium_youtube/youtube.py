@@ -305,17 +305,13 @@ class Youtube:
             print("Upload: clicked more options")
 
             tags_container = self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/ytcp-uploads-advanced/ytcp-form-input-container/div[1]/div[2]/ytcp-free-text-chip-bar/ytcp-chip-bar/div")
-            tags_field = self.browser.find(By.ID, "text-input", tags_container)
+            tags_field = self.browser.find(By.ID, 'text-input', tags_container)
             tags_field.send_keys(','.join(tags) + ',')
             print("Upload: added tags")
 
-            if made_for_kids:
-                kids_selection_name = "MADE_FOR_KIDS"
-            else:
-                kids_selection_name = "NOT_MADE_FOR_KIDS"
-
+            kids_selection_name = 'MADE_FOR_KIDS' if made_for_kids else 'NOT_MADE_FOR_KIDS'
             kids_section = self.browser.find(By.NAME, kids_selection_name)
-            self.browser.find(By.ID, "radioLabel", kids_section).click()
+            self.browser.find(By.ID, 'radioLabel', kids_section).click()
             print('Upload: did set', kids_selection_name)
 
             if thumbnail_image_path is not None:
