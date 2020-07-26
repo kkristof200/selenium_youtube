@@ -316,7 +316,7 @@ class Youtube:
 
             if thumbnail_image_path is not None:
                 try:
-                    self.browser.find_by('input', id_='file-loader')
+                    self.browser.find(By.XPATH, "//input[@id='file-loader']").send_keys(thumbnail_image_path)
                     time.sleep(0.5)
                 except Exception as e:
                     print('Upload: Thumbnail error: ', e)
