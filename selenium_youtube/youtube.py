@@ -298,8 +298,15 @@ class Youtube:
             description_field.clear()
             time.sleep(0.5)
             description_field.send_keys(description[:MAX_DESCRIPTION_CHAR_LEN])
-
             print('Upload: added description')
+
+            if thumbnail_image_path is not None:
+                try:
+                    self.browser.find(By.XPATH, "//input[@id='file-loader']").send_keys(thumbnail_image_path)
+                    time.sleep(0.5)
+                    print('Upload: added thumbnail')
+                except Exception as e:
+                    print('Upload: Thumbnail error: ', e)
 
             self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/div/ytcp-button/div").click()
             print("Upload: clicked more options")
@@ -313,13 +320,6 @@ class Youtube:
             kids_section = self.browser.find(By.NAME, kids_selection_name)
             self.browser.find(By.ID, 'radioLabel', kids_section).click()
             print('Upload: did set', kids_selection_name)
-
-            if thumbnail_image_path is not None:
-                try:
-                    self.browser.find(By.XPATH, "//input[@id='file-loader']").send_keys(thumbnail_image_path)
-                    time.sleep(0.5)
-                except Exception as e:
-                    print('Upload: Thumbnail error: ', e)
             
             self.browser.find(By.ID, 'next-button').click()
             print('Upload: clicked first next')
