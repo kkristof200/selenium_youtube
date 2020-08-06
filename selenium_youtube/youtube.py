@@ -276,7 +276,7 @@ class Youtube:
             self.browser.find_by('ytcp-text-dropdown-trigger', id_='endscreen-editor-link').click()
             time.sleep(0.5)
             end_screen_elements = self.browser.find_all_by('div', class_='card style-scope ytve-endscreen-template-picker')
-            
+
             for end_screen_element in end_screen_elements:
                 end_screen_element.click()
                 time.sleep(0.5)
