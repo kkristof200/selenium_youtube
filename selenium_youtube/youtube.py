@@ -24,6 +24,7 @@ YT_URL          = 'https://www.youtube.com'
 YT_STUDIO_URL   = 'https://studio.youtube.com'
 YT_UPLOAD_URL   = 'https://www.youtube.com/upload'
 YT_LOGIN_URL    = 'https://accounts.google.com/signin/v2/identifier?service=youtube'
+YT_STUDIO_VIDEO_URL = 'https://studio.youtube.com/video/{}/edit/basic'
 
 MAX_TITLE_CHAR_LEN          = 100
 MAX_DESCRIPTION_CHAR_LEN    = 5000
@@ -248,6 +249,44 @@ class Youtube:
             self.browser.get(self.browser.find(By.XPATH, "//a[@id='menu-item-3']").get_attribute('href'))
 
             return True
+        except Exception as e:
+            print(e)
+
+            return False
+
+    def add_endscreen(self, video_id: str, max_wait_seconds_for_processing: float = 0) -> bool:
+        self.browser.get(YT_STUDIO_VIDEO_URL.format(video_id))
+
+        try:
+            start_time = time.time()
+
+            while True:
+                endscreen_editor_overlay = self.browser.find_by('div', class_='uploading-overlay style-scope ytcp-video-info')
+
+                if endscreen_editor_overlay and endscreen_editor_overlay.text and 'processing' in endscreen_editor_overlay.text.lower():
+                    if time.time() - start_time < max_wait_seconds_for_processing:
+                        time.sleep(1)
+
+                        continue
+
+                    return False
+                else:
+                    break
+
+            self.browser.find_by('ytcp-text-dropdown-trigger', id_='endscreen-editor-link').click()
+            time.sleep(0.5)
+            end_screen_elements = self.browser.find_all_by('div', class_='card style-scope ytve-endscreen-template-picker')
+            
+            for end_screen_element in end_screen_elements:
+                end_screen_element.click()
+                time.sleep(0.5)
+                self.browser.find_by('ytcp-button', id_='save-button').click()
+
+                break
+
+            time.sleep(0.5)
+
+            return self.browser.find_by('div', class_='element-header style-scope ytve-endscreen-editor-options-panel', timeout=2.5) is None
         except Exception as e:
             print(e)
 
