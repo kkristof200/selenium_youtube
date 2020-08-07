@@ -293,7 +293,10 @@ class Youtube:
             return False
 
     def quit(self):
-        self.browser.driver.quit()
+        try:
+            self.browser.driver.quit()
+        except:
+            pass
 
 
     # ------------------------------------------------------- Private methods -------------------------------------------------------- #
