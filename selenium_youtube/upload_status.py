@@ -3,6 +3,9 @@
 # System
 from enum import Enum
 
+# Pip
+from selenium_firefox.firefox import Firefox
+
 # ---------------------------------------------------------------------------------------------------------------------------------------- #
 
 
@@ -21,22 +24,14 @@ class UploadStatus(Enum):
     @classmethod
     def get_status(
         cls,
+        ff: Firefox,
         element
     ) -> cls:
-        try:
-            uploading = element.get_attribute('uploading') == ''
-        except:
-            uploading = False
+        attriutes = ff.get_attributes(element)
 
-        try:
-            processing = element.get_attribute('processing') == ''
-        except:
-            processing = False
-
-        try:
-            processed = element.get_attribute('checks-can-start') == ''
-        except:
-            processed = False
+        uploading = 'uploading' in attriutes and attriutes['uploading'] == ''
+        processing = 'processing' in attriutes and attriutes['processing'] == ''
+        processed = 'checks-can-start' in attriutes and attriutes['checks-can-start'] == ''
 
         if uploading:
             return UploadStatus.UPLOADING

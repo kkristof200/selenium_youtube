@@ -262,9 +262,9 @@ class Youtube:
             start_time = time.time()
 
             while True:
-                endscreen_editor_overlay = self.browser.find_by('div', class_='uploading-overlay style-scope ytcp-video-info')
+                attrs = self.browser.get_attributes(self.browser.find_by('ytcp-text-dropdown-trigger', id_='endscreen-editor-link'))
 
-                if endscreen_editor_overlay and endscreen_editor_overlay.text and 'processing' in endscreen_editor_overlay.text.lower():
+                if not attrs or 'disabled' in attrs:
                     if time.time() - start_time < max_wait_seconds_for_processing:
                         time.sleep(1)
 
