@@ -26,7 +26,7 @@ class UploadStatus(Enum):
         cls,
         ff: Firefox,
         element
-    ) -> cls:
+    ):
         attriutes = ff.get_attributes(element)
 
         uploading = 'uploading' in attriutes and attriutes['uploading'] == ''
