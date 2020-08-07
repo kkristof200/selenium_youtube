@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup as bs
 
 # Local
 from .visibility import Visibility
+from .upload_status import UploadStatus
 
 # ---------------------------------------------------------------------------------------------------------------------------------------- #
 
@@ -388,10 +389,15 @@ class Youtube:
 
             while True:
                 try:
-                    progress_label = self.browser.find_by('span', { 'class': 'progress-label style-scope ytcp-video-upload-progress' }, timeout=0.1) or self.browser.find_by('span', { 'class': 'progress-label-old style-scope ytcp-video-upload-progress' }, timeout=0.1)
-                    progress_label_text = progress_label.text.lower()
+                    upload_progress_element = self.browser.find_by(
+                        'ytcp-video-upload-progress',
+                        class_='style-scope ytcp-uploads-dialog',
+                        timeout=0.2
+                    )
 
-                    if 'finished' in progress_label_text or 'process' in progress_label_text or '100' in progress_label_text:
+                    upload_status = UploadStatus.get_status(upload_progress_element)
+
+                    if upload_status in [UploadStatus.PROCESSING_SD, UploadStatus.PROCESSED_SD_PROCESSING_HD, UploadStatus.PROCESSED_ALL]:
                         done_button = self.browser.find(By.ID, 'done-button')
 
                         if done_button.get_attribute('aria-disabled') == 'false':
