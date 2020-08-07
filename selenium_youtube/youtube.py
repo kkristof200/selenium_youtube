@@ -276,18 +276,13 @@ class Youtube:
 
             self.browser.find_by('ytcp-text-dropdown-trigger', id_='endscreen-editor-link').click()
             time.sleep(0.5)
-            end_screen_elements = self.browser.find_all_by('div', class_='card style-scope ytve-endscreen-template-picker')
-
-            for end_screen_element in end_screen_elements:
-                end_screen_element.click()
-                time.sleep(0.5)
-                self.browser.find_by('ytcp-button', id_='save-button').click()
-
-                break
-
+            self.browser.find_all_by('div', class_='card style-scope ytve-endscreen-template-picker')[0].click()
             time.sleep(0.5)
+            self.browser.find_by('ytcp-button', id_='save-button').click()
 
-            return self.browser.find_by('div', class_='element-header style-scope ytve-endscreen-editor-options-panel', timeout=2.5) is None
+            time.sleep(2)
+
+            return self.browser.find_by('ytve-endscreen-editor-options-panel', class_='style-scope ytve-editor', timeout=0.5) is None
         except Exception as e:
             print(e)
 
