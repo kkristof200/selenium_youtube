@@ -395,7 +395,7 @@ class Youtube:
                         timeout=0.2
                     )
 
-                    upload_status = UploadStatus.get_status(upload_progress_element)
+                    upload_status = UploadStatus.get_status(self.browser, upload_progress_element)
 
                     if upload_status in [UploadStatus.PROCESSING_SD, UploadStatus.PROCESSED_SD_PROCESSING_HD, UploadStatus.PROCESSED_ALL]:
                         done_button = self.browser.find(By.ID, 'done-button')
