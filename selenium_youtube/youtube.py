@@ -13,8 +13,10 @@ from kcu import strings
 from bs4 import BeautifulSoup as bs
 
 # Local
-from .visibility import Visibility
-from .upload_status import UploadStatus
+from .enums.visibility import Visibility
+from .enums.upload_status import UploadStatus
+from .enums.analytics_period import AnalyticsPeriod
+from .enums.analytics_tab import AnalyticsTab
 
 # ---------------------------------------------------------------------------------------------------------------------------------------- #
 
@@ -76,18 +78,15 @@ class Youtube:
             self.__internal_channel_id = cookies_folder_path or self.browser.cookies_folder_path
 
         try:
-            logged_in = self.browser.login_via_cookies(YT_URL, LOGIN_INFO_COOKIE_NAME)
-
-            if not logged_in and email and password:
-                logged_in = self.login(email=email, password=password, login_prompt_callback=login_prompt_callback)
-
-            if logged_in:
+            if self.browser.login_via_cookies(YT_URL, LOGIN_INFO_COOKIE_NAME):
                 time.sleep(0.5)
                 self.browser.get(YT_URL)
                 time.sleep(0.5)
                 self.browser.save_cookies()
                 time.sleep(0.5)
                 self.channel_id = self.get_current_channel_id()
+            elif email and password:
+                self.login(email=email, password=password, login_prompt_callback=login_prompt_callback)
         except Exception as e:
             print(e)
             self.quit()
@@ -127,8 +126,9 @@ class Youtube:
             time.sleep(0.5)
             self.browser.get(YT_URL)
             time.sleep(0.5)
-
             self.browser.save_cookies()
+            time.sleep(0.5)
+            self.channel_id = self.get_current_channel_id()
 
         time.sleep(0.5)
         self.browser.get(org_url)
@@ -226,19 +226,34 @@ class Youtube:
         else:
             return self.__upload(video_path, title, description, tags, made_for_kids=made_for_kids, visibility=visibility, thumbnail_image_path=thumbnail_image_path, extra_sleep_after_upload=extra_sleep_after_upload, extra_sleep_before_publish=extra_sleep_before_publish)
 
-    def get_current_channel_id(self) -> Optional[str]:
-        self.browser.get(YT_URL)
-
+    def get_current_channel_id(self, __click_avatar: bool = False, __get_home_url: bool = False) -> Optional[str]:
+        if __get_home_url:
+            self.browser.get(YT_URL)
+        
         try:
-            return json.loads(
-                strings.between(
-                    self.browser.driver.page_source, 'var ytInitialGuideData = ', '};'
-                ) + '}'
-            )['responseContext']['serviceTrackingParams'][2]['params'][0]['value']
-        except Exception as e:
-            print('get_current_channel_id', e)
+            if __click_avatar:
+                avatar_button = self.browser.find_all_by('button', id_='avatar-btn', timeout=0.5)
 
-            return None
+                if avatar_button:
+                    avatar_button.click()
+
+            href_containers = self.browser.find_all_by('a', class_='yt-simple-endpoint style-scope ytd-compact-link-renderer', timeout=0.5)
+
+            if href_containers:
+                for href_container in href_containers:
+                    href = href_container.get_attribute('href')
+
+                    if href and 'channel/' in href:
+                        return href.lstrip('/').lstrip('channel').lstrip('/').split('?')[0]
+        except Exception as e:
+            print(e)
+        
+        if not __click_avatar:
+            return self.get_current_channel_id(__click_avatar=True, __get_home_url=__get_home_url)
+        elif not __get_home_url:
+            return self.get_current_channel_id(__click_avatar=False, __get_home_url=True)
+
+        return None
 
     def load_video(self, video_id: str):
         self.browser.get(self.__video_url(video_id))
@@ -324,17 +339,54 @@ class Youtube:
 
         return video_ids
 
-    def check_analytics(self) -> bool:
-        self.browser.get(YT_STUDIO_URL)
+    def check_analytics(
+        self,
+        tab: AnalyticsTab = AnalyticsTab.OVERVIEW,
+        period: AnalyticsPeriod = AnalyticsPeriod.LAST_28_DAYS
+    ) -> bool:
+        if not self.channel_id:
+            print('No channel ID found')
+
+            return False
+
+        url = YT_STUDIO_URL.rstrip('/') + '/channel/' + self.channel_id + '/analytics/tab-' + tab.value + '/period-' + period.value
 
         try:
-            self.browser.get(self.browser.find(By.XPATH, "//a[@id='menu-item-3']").get_attribute('href'))
+            self.browser.get(url)
 
             return True
         except Exception as e:
             print(e)
 
             return False
+
+    def get_violations(self) -> Tuple[bool, int]: # has_warning, strikes
+        self.browser.get(YT_STUDIO_URL)
+
+        try:
+            violations_container = self.browser.find_by('div', class_='style-scope ytcd-strikes-item')
+
+            if not violations_container:
+                return False, 0
+
+            violations_label = self.browser.find_by('div', class_='label style-scope ytcp-badge', in_element=violations_container)
+
+            if not violations_label:
+                return False, 0
+
+            violation_text = violations_label.text.strip().lower()
+            violation_text_number = 0
+
+            try:
+                violation_text_number = int(violation_text)
+            except:
+                pass
+
+            return True, violation_text_number
+        except Exception as e:
+            print(e)
+
+            return False, 0
 
     def add_endscreen(self, video_id: str, max_wait_seconds_for_processing: float = 0) -> bool:
         self.browser.get(YT_STUDIO_VIDEO_URL.format(video_id))
