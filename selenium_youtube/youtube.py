@@ -6,6 +6,7 @@ import time, json
 
 # Pip
 from selenium_firefox.firefox import Firefox, By, Keys
+from selenium.webdriver.common.action_chains import ActionChains
 from ktimeout import timeout
 from kcu import strings
 
@@ -26,6 +27,7 @@ YT_STUDIO_URL   = 'https://studio.youtube.com'
 YT_UPLOAD_URL   = 'https://www.youtube.com/upload'
 YT_LOGIN_URL    = 'https://accounts.google.com/signin/v2/identifier?service=youtube'
 YT_STUDIO_VIDEO_URL = 'https://studio.youtube.com/video/{}/edit/basic'
+YT_WATCH_VIDEO_URL = 'https://www.youtube.com/watch?v='
 
 MAX_TITLE_CHAR_LEN          = 100
 MAX_DESCRIPTION_CHAR_LEN    = 5000
@@ -45,8 +47,8 @@ class Youtube:
 
     def __init__(
         self,
-        cookies_folder_path: str,
-        extensions_folder_path: str,
+        cookies_folder_path: Optional[str] = None,
+        extensions_folder_path: Optional[str] = None,
         email: Optional[str] = None,
         password: Optional[str] = None,
         host: Optional[str] = None,
@@ -63,16 +65,23 @@ class Youtube:
             screen_size=screen_size, user_agent=user_agent, 
             full_screen=full_screen, disable_images=disable_images,
             headless=headless
-            )
+        )
         self.channel_id = None
+        self.browser.get(YT_URL)
+        self.__dismiss_alerts()
 
         try:
             self.__internal_channel_id = cookies_folder_path.strip('/').split('/')[-1]
         except:
-            self.__internal_channel_id = cookies_folder_path
+            self.__internal_channel_id = cookies_folder_path or self.browser.cookies_folder_path
 
         try:
-            if self.browser.login_via_cookies(YT_URL, LOGIN_INFO_COOKIE_NAME) or self.login(email=email, password=password, login_prompt_callback=login_prompt_callback):
+            logged_in = self.browser.login_via_cookies(YT_URL, LOGIN_INFO_COOKIE_NAME)
+
+            if not logged_in and email and password:
+                logged_in = self.login(email=email, password=password, login_prompt_callback=login_prompt_callback)
+
+            if logged_in:
                 time.sleep(0.5)
                 self.browser.get(YT_URL)
                 time.sleep(0.5)
@@ -125,6 +134,71 @@ class Youtube:
         self.browser.get(org_url)
 
         return logged_in
+
+    def watch_video(
+        self,
+        video_id: str,
+        percent_to_watch: float = -1, # 0-100 # -1 means all
+        like: bool = False
+    ) -> Tuple[bool, bool]: # watched, liked
+        watched = False
+        liked = False
+
+        try:
+            self.browser.get(YT_WATCH_VIDEO_URL+video_id)
+            length_s = float(strings.between(self.browser.driver.page_source, 'detailpage\\\\u0026len=', '\\\\'))
+            play_button = self.browser.find_by('button', class_='ytp-large-play-button ytp-button', timeout=0.5)
+
+            if play_button and play_button.is_displayed():
+                play_button.click()
+                time.sleep(1)
+
+            while True:
+                ad = self.browser.find_by('div', class_='video-ads ytp-ad-module', timeout=0.5)
+
+                if not ad or not ad.is_displayed():
+                    break
+
+                time.sleep(0.1)
+
+            watched = True
+            seconds_to_watch = percent_to_watch / 100 * length_s if percent_to_watch >= 0 else length_s
+
+            if seconds_to_watch > 0:
+                print('Goinng to watch', seconds_to_watch)
+                time.sleep(seconds_to_watch)
+
+            return watched, self.like(video_id) if like and self.is_logged_in else False
+        except Exception as e:
+            print(e)
+
+            return watched, liked
+    
+    def like(self, video_id: str) -> bool:
+        self.browser.get(YT_WATCH_VIDEO_URL+video_id)
+
+        try:
+            buttons_container = self.browser.find_by('div', id_='top-level-buttons', class_='style-scope ytd-menu-renderer', timeout=1.5)
+
+            if buttons_container:
+                button_container = self.browser.find_by('ytd-toggle-button-renderer', class_='style-scope ytd-menu-renderer force-icon-button style-text', timeout=0.5, in_element=buttons_container)
+
+                if button_container:
+                    button = self.browser.find_by('button', id_='button', timeout=0.5, in_element=button_container)
+
+                    if button:
+                        attr = button.get_attribute('aria-pressed')
+
+                        if attr and attr == 'false':
+                            button.click()
+
+                        return True
+
+            return False
+        except Exception as e:
+            print(e)
+
+            return False
 
     def upload(
         self,
@@ -555,7 +629,6 @@ class Youtube:
                 self.browser.find_by('div', {'jscontroller': 'VXdfxd', 'role': 'button'}).click()
                 time.sleep(1)
 
-                from selenium.webdriver.common.action_chains import ActionChains
                 action = ActionChains(self.browser.driver)
 
                 pass_container = self.browser.find_by('div', { 'id': 'password', 'jscontroller': 'pxq3x' })
@@ -591,6 +664,28 @@ class Youtube:
 
         return self.is_logged_in
     
+    def __dismiss_alerts(self):
+        dismiss_button_container = self.browser.find_by('div', id_='dismiss-button', timeout=1.5)
+        
+        if dismiss_button_container:
+            dismiss_button = self.browser.find_by('paper-button', id_='button', timeout=0.5, in_element=dismiss_button_container)
+
+            if dismiss_button:
+                dismiss_button.click()
+            
+            iframe = self.browser.find_by('iframe', class_='style-scope ytd-consent-bump-lightbox', timeout=2.5)
+
+            if iframe:
+                self.browser.driver.switch_to.frame(iframe)
+
+            agree_button = self.browser.find_by('div', id_='introAgreeButton', timeout=2.5)
+
+            if agree_button:
+                agree_button.click()
+            
+            if iframe:
+                self.browser.driver.switch_to.default_content()
+    
     def __video_url(self, video_id: str) -> str:
         return YT_URL + '/watch?v=' + video_id
     
@@ -598,4 +693,4 @@ class Youtube:
         return YT_URL + '/channel/' + channel_id + '/videos?view=0&sort=da&flow=grid'
 
 
-# ---------------------------------------------------------------------------------------------------------------------------------------- #
+# ---------------------------------------------------------------------------------------------------------------------------------------- #s
