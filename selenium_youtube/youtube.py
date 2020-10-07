@@ -226,12 +226,12 @@ class Youtube:
         else:
             return self.__upload(video_path, title, description, tags, made_for_kids=made_for_kids, visibility=visibility, thumbnail_image_path=thumbnail_image_path, extra_sleep_after_upload=extra_sleep_after_upload, extra_sleep_before_publish=extra_sleep_before_publish)
 
-    def get_current_channel_id(self, __click_avatar: bool = False, __get_home_url: bool = False) -> Optional[str]:
-        if __get_home_url:
+    def get_current_channel_id(self, _click_avatar: bool = False, _get_home_url: bool = False) -> Optional[str]:
+        if _get_home_url:
             self.browser.get(YT_URL)
-        
+
         try:
-            if __click_avatar:
+            if _click_avatar:
                 avatar_button = self.browser.find_all_by('button', id_='avatar-btn', timeout=0.5)
 
                 if avatar_button:
@@ -247,11 +247,11 @@ class Youtube:
                         return href.lstrip('/').lstrip('channel').lstrip('/').split('?')[0]
         except Exception as e:
             print(e)
-        
-        if not __click_avatar:
-            return self.get_current_channel_id(__click_avatar=True, __get_home_url=__get_home_url)
-        elif not __get_home_url:
-            return self.get_current_channel_id(__click_avatar=False, __get_home_url=True)
+
+        if not _click_avatar:
+            return self.get_current_channel_id(_click_avatar=True, _get_home_url=_get_home_url)
+        elif not _get_home_url:
+            return self.get_current_channel_id(_click_avatar=False, _get_home_url=True)
 
         return None
 
