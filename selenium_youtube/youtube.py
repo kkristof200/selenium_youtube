@@ -7,7 +7,7 @@ import time, json
 # Pip
 from selenium_firefox.firefox import Firefox, By, Keys
 from selenium.webdriver.common.action_chains import ActionChains
-from ktimeout import timeout
+import stopit
 from kcu import strings
 
 from bs4 import BeautifulSoup as bs
@@ -36,6 +36,7 @@ MAX_DESCRIPTION_CHAR_LEN    = 5000
 MAX_TAGS_CHAR_LEN           = 400
 
 LOGIN_INFO_COOKIE_NAME = 'LOGIN_INFO'
+TIME_OUT_ERROR = 'Operation has timed out.'
 
 # ---------------------------------------------------------------------------------------------------------------------------------------- #
 
@@ -213,18 +214,14 @@ class Youtube:
         extra_sleep_after_upload: Optional[int] = None,
         extra_sleep_before_publish: Optional[int] = None
     ) -> (bool, Optional[str]):
+        res = self.__upload(video_path, title, description, tags, made_for_kids=made_for_kids, visibility=visibility, thumbnail_image_path=thumbnail_image_path, extra_sleep_after_upload=extra_sleep_after_upload, extra_sleep_before_publish=extra_sleep_before_publish, timeout=_timeout)
 
-        if _timeout is not None:
-            try:
-                with timeout.timeout(_timeout):
-                    return self.__upload(video_path, title, description, tags, made_for_kids=made_for_kids, visibility=visibility, thumbnail_image_path=thumbnail_image_path, extra_sleep_after_upload=extra_sleep_after_upload, extra_sleep_before_publish=extra_sleep_before_publish)
-            except Exception as e:
-                print('Upload', e)
-                # self.browser.get(YT_URL)
+        if res == TIME_OUT_ERROR:
+            print('Upload:', TIME_OUT_ERROR)
 
-                return False, None
-        else:
-            return self.__upload(video_path, title, description, tags, made_for_kids=made_for_kids, visibility=visibility, thumbnail_image_path=thumbnail_image_path, extra_sleep_after_upload=extra_sleep_after_upload, extra_sleep_before_publish=extra_sleep_before_publish)
+            return False, None
+
+        return res
 
     def get_current_channel_id(self, _click_avatar: bool = False, _get_home_url: bool = False) -> Optional[str]:
         if _get_home_url:
@@ -232,7 +229,7 @@ class Youtube:
 
         try:
             if _click_avatar:
-                avatar_button = self.browser.find_all_by('button', id_='avatar-btn', timeout=0.5)
+                avatar_button = self.browser.find_by('button', id_='avatar-btn', timeout=0.5)
 
                 if avatar_button:
                     avatar_button.click()
@@ -244,7 +241,7 @@ class Youtube:
                     href = href_container.get_attribute('href')
 
                     if href and 'channel/' in href:
-                        return href.lstrip('/').lstrip('channel').lstrip('/').split('?')[0]
+                        return strings.between(href, 'channel/', '?')
         except Exception as e:
             print(e)
 
@@ -265,17 +262,14 @@ class Youtube:
         pinned: bool = False,
         _timeout: Optional[int] = 15
     ) -> (bool, bool):
-        if _timeout is not None:
-            try:
-                with timeout.timeout(_timeout):
-                    return self.__comment_on_video(video_id, comment, pinned=pinned)
-            except Exception as e:
-                print('Comment', e)
-                # self.browser.get(YT_URL)
+        res = self.__comment_on_video(video_id, comment, pinned=pinned, timeout=_timeout)
 
-                return False, False
-        else:
-            return self.__comment_on_video(video_id, comment, pinned=pinned)
+        if res == TIME_OUT_ERROR:
+            print('Comment:', TIME_OUT_ERROR)
+
+            return False, False
+
+        return res
 
     def get_channel_video_ids(
         self,
@@ -430,6 +424,7 @@ class Youtube:
 
     # ------------------------------------------------------- Private methods -------------------------------------------------------- #
 
+    @stopit.threading_timeoutable(default=TIME_OUT_ERROR, timeout_param='timeout')
     def __upload(
         self,
         video_path: str,
@@ -565,6 +560,7 @@ class Youtube:
             return False, None
 
     # returns (commented_successfully, pinned_comment_successfully)
+    @stopit.threading_timeoutable(default=TIME_OUT_ERROR, timeout_param='timeout')
     def __comment_on_video(self, video_id: str, comment: str, pinned: bool = False) -> (bool, bool):
         self.load_video(video_id)
         time.sleep(1)
