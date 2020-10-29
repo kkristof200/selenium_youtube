@@ -34,6 +34,7 @@ YT_WATCH_VIDEO_URL = 'https://www.youtube.com/watch?v='
 MAX_TITLE_CHAR_LEN          = 100
 MAX_DESCRIPTION_CHAR_LEN    = 5000
 MAX_TAGS_CHAR_LEN           = 400
+MAX_TAG_CHAR_LEN            = 30
 
 LOGIN_INFO_COOKIE_NAME = 'LOGIN_INFO'
 TIME_OUT_ERROR = 'Operation has timed out.'
@@ -479,7 +480,7 @@ class Youtube:
 
             tags_container = self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/ytcp-uploads-advanced/ytcp-form-input-container/div[1]/div[2]/ytcp-free-text-chip-bar/ytcp-chip-bar/div")
             tags_field = self.browser.find(By.ID, 'text-input', tags_container)
-            tags_field.send_keys(','.join(tags)[:MAX_TAGS_CHAR_LEN-1] + ',')
+            tags_field.send_keys(','.join([t for t in tags if len(t) <= MAX_TAG_CHAR_LEN])[:MAX_TAGS_CHAR_LEN-1] + ',')
             print("Upload: added tags")
 
             kids_selection_name = 'MADE_FOR_KIDS' if made_for_kids else 'NOT_MADE_FOR_KIDS'
