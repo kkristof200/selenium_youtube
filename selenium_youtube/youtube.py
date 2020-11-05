@@ -118,8 +118,13 @@ class Youtube:
         logged_in = self.is_logged_in
 
         if not logged_in and email is not None and password is not None:
-            logged_in = self.__login_auto(email, password)
-        
+            try:
+                logged_in = self.__login_auto(email, password, timeout=30)
+            except Exception as e:
+                print('__login_auto', e)
+
+                logged_in = False
+
         if not logged_in:
             print('Could not log you in automatically.')
             logged_in = self.__login_manual(login_prompt_callback=login_prompt_callback)
@@ -666,31 +671,28 @@ class Youtube:
 
             return False, False
 
-    def __login_auto(self, email: str, password: str) -> bool:
+    @stopit.threading_timeoutable(default=TIME_OUT_ERROR, timeout_param='timeout')
+    def __login_auto(self, email: str, password: str, timeout: Optional[float] = None) -> bool:
         self.browser.get(YT_LOGIN_URL)
         time.sleep(0.5)
 
-        try:
-            with timeout.timeout(30):
-                email_field = self.browser.find_by('input', { 'id': 'identifierId', 'type': 'email' })
-                email_field.click()
-                self.browser.send_keys_delay_random(email_field, email)
-                time.sleep(1)
-                self.browser.find_by('div', {'jscontroller': 'VXdfxd', 'role': 'button'}).click()
-                time.sleep(1)
+        email_field = self.browser.find_by('input', { 'id': 'identifierId', 'type': 'email' })
+        email_field.click()
+        self.browser.send_keys_delay_random(email_field, email)
+        time.sleep(1)
+        self.browser.find_by('div', {'jscontroller': 'VXdfxd', 'role': 'button'}).click()
+        time.sleep(1)
 
-                action = ActionChains(self.browser.driver)
+        action = ActionChains(self.browser.driver)
 
-                pass_container = self.browser.find_by('div', { 'id': 'password', 'jscontroller': 'pxq3x' })
-                pass_field = self.browser.find_by('input', { 'type': 'password' }, in_element=pass_container)
-                action.move_to_element(pass_field).perform()
-                pass_field.click()
-                self.browser.send_keys_delay_random(pass_field, password)
-                time.sleep(1)
-                self.browser.find_by('div', {'jscontroller': 'VXdfxd', 'role': 'button'}).click()
-                time.sleep(1)
-        except Exception as e:
-            print('__login_auto', e)
+        pass_container = self.browser.find_by('div', { 'id': 'password', 'jscontroller': 'pxq3x' })
+        pass_field = self.browser.find_by('input', { 'type': 'password' }, in_element=pass_container)
+        action.move_to_element(pass_field).perform()
+        pass_field.click()
+        self.browser.send_keys_delay_random(pass_field, password)
+        time.sleep(1)
+        self.browser.find_by('div', {'jscontroller': 'VXdfxd', 'role': 'button'}).click()
+        time.sleep(1)
 
         self.browser.get(YT_URL)
         time.sleep(0.5)
