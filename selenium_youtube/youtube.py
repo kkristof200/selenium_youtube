@@ -578,96 +578,122 @@ class Youtube:
         self.browser.scroll(100)
 
         try:
+            # time.sleep(10000)
             header = self.browser.find_by('div', id_='masthead-container', class_='style-scope ytd-app')
-            comment_field = self.browser.find(By.XPATH, "//div[@id='placeholder-area']", timeout=5)
 
-            self.browser.scroll_to_element(comment_field, header_element=header)
+            print('comment: looking for \'comment_placeholder_area\'')
+            comment_placeholder_area = self.browser.find_by('div', id_='placeholder-area', timeout=5)
+
+            print('comment: scrollinng to \'comment_placeholder_area\'')
+            self.browser.scroll_to_element(comment_placeholder_area, header_element=header)
             time.sleep(0.5)
 
-            print('comment: clicking comment_field')
-            comment_field.click()
+            print('comment: getting focus')
+            try:
+                self.browser.find_by('div', id_='simple-box', class_='style-scope ytd-comments-header-renderer',timeout=0.5).click()
+                self.browser.find_by('ytd-comment-simplebox-renderer', class_='style-scope ytd-comments-header-renderer',timeout=0.5).click()
+                # comment_placeholder_area.click()
+                self.browser.find_by('div', id_='placeholder-area', timeout=0.5).click()
+            except Exception as e:
+                print(e)
+
             print('comment: sending keys')
-            self.browser.find(By.XPATH, "//div[@id='contenteditable-root']", timeout=0.5).send_keys(comment)
+            # self.browser.find_by('div', id_='contenteditable-root', timeout=0.5).click()
+            self.browser.find_by('div', id_='contenteditable-root', timeout=0.5).send_keys(comment)
+
             print('comment: clicking post_comment')
-            self.browser.find(By.XPATH, "//ytd-button-renderer[@id='submit-button' and @class='style-scope ytd-commentbox style-primary size-default']", timeout=0.5).click()
+            self.browser.find_by('ytd-button-renderer', id_='submit-button', class_='style-scope ytd-commentbox style-primary size-default',timeout=0.5).click()
+
+            # self.browser.find(By.XPATH, "//ytd-button-renderer[@id='submit-button' and @class='style-scope ytd-commentbox style-primary size-default']", timeout=0.5).click()
 
             if not pinned:
                 return True, False
 
             try:
-                dropdown_menu_xpath = "//yt-sort-filter-sub-menu-renderer[@class='style-scope ytd-comments-header-renderer']"
-                dropdown_menu = self.browser.find(By.XPATH, dropdown_menu_xpath)
-                self.browser.scroll_to_element(dropdown_menu, header_element=header)
-                time.sleep(0.5)
-
-                dropdown_trigger_xpath = "//paper-button[@id='label' and @class='dropdown-trigger style-scope yt-dropdown-menu']"
-
-                print('comment: clicking dropdown_trigger (open)')
-                self.browser.find(By.XPATH, dropdown_trigger_xpath, element=dropdown_menu, timeout=2.5).click()
-
                 try:
-                    dropdown_menu = self.browser.find(By.XPATH, dropdown_menu_xpath)
-                    dropdown_elements = [elem for elem in self.browser.find_all(By.XPATH, "//a", element=dropdown_menu, timeout=2.5) if 'yt-dropdown-menu' in elem.get_attribute('class')]
+                    dropdown_menu = self.browser.find_by('yt-sort-filter-sub-menu-renderer', class_='style-scope ytd-comments-header-renderer')
+                    self.browser.scroll_to_element(dropdown_menu, header_element=header)
+                    time.sleep(0.5)
 
-                    last_dropdown_element = dropdown_elements[-1]
+                    print('comment: clicking dropdown_trigger (open)')
+                    self.browser.find_by('paper-button', id_='label', class_='dropdown-trigger style-scope yt-dropdown-menu', in_element=dropdown_menu, timeout=2.5).click()
 
-                    if last_dropdown_element.get_attribute('aria-selected') == 'false':
-                        time.sleep(0.25)
-                        print('comment: clicking last_dropdown_element')
-                        last_dropdown_element.click()
-                    else:
-                        print('comment: clicking dropdown_trigger (close) (did not click last_dropdown_element (did not find it))')
-                        self.browser.find(By.XPATH, dropdown_trigger_xpath, element=dropdown_menu, timeout=2.5).click()
+                    try:
+                        dropdown_menu = self.browser.find_by('paper-button', id_='label', class_='dropdown-trigger style-scope yt-dropdown-menu', in_element=dropdown_menu, timeout=2.5)
+                        dropdown_elements = [elem for elem in self.browser.find_all_by('a', in_element=dropdown_menu, timeout=2.5) if 'yt-dropdown-menu' in elem.get_attribute('class')]
+
+                        last_dropdown_element = dropdown_elements[-1]
+
+                        if last_dropdown_element.get_attribute('aria-selected') == 'false':
+                            time.sleep(0.25)
+                            print('comment: clicking last_dropdown_element')
+                            last_dropdown_element.click()
+                        else:
+                            print('comment: clicking dropdown_trigger (close) (did not click last_dropdown_element (did not find it))')
+                            self.browser.find_by('paper-button', id_='label', class_='dropdown-trigger style-scope yt-dropdown-menu', in_element=dropdown_menu, timeout=2.5).click()
+                    except Exception as e:
+                        print(e)
+                        self.browser.find_by('paper-button', id_='label', class_='dropdown-trigger style-scope yt-dropdown-menu', in_element=dropdown_menu, timeout=2.5).click()
                 except Exception as e:
                     print(e)
-                    print('comment: clicking dropdown_trigger (close) (did not click last_dropdown_element (error occured))')
-                    self.browser.find(By.XPATH, dropdown_trigger_xpath, element=dropdown_menu, timeout=2.5).click()
+
+                # self.browser.scroll(100)
+                time.sleep(2.5)
+
+                for comment_thread in self.browser.find_all_by('ytd-comment-thread-renderer', class_='style-scope ytd-item-section-renderer'):
+                    pinned_element = self.browser.find_by('yt-icon', class_='style-scope ytd-pinned-comment-badge-renderer', in_element=comment_thread, timeout=0.5)
+                    pinned = pinned_element is not None and pinned_element.is_displayed()
+
+                    if pinned:
+                        continue
+
+                    try:
+                        # button_3_dots
+                        button_3_dots = self.browser.find_by('yt-icon-button', id_='button', class_='dropdown-trigger style-scope ytd-menu-renderer', in_element=comment_thread, timeout=2.5)
+
+                        self.browser.scroll_to_element(button_3_dots, header_element=header)
+                        time.sleep(0.5)
+                        print('comment: clicking button_3_dots')
+                        button_3_dots.click()
+
+                        popup_renderer_3_dots = self.browser.find_by('ytd-menu-popup-renderer', class_='ytd-menu-popup-renderer', timeout=2)
+                        time.sleep(1.5)
+
+                        try:
+                            self.browser.driver.execute_script("arguments[0].scrollIntoView();", self.browser.find_by('a',class_='yt-simple-endpoint style-scope ytd-menu-navigation-item-renderer', in_element=popup_renderer_3_dots, timeout=2.5))
+
+                            self.browser.find_by('a',class_='yt-simple-endpoint style-scope ytd-menu-navigation-item-renderer', in_element=popup_renderer_3_dots, timeout=2.5).click()
+                        except:
+                            try:
+                                self.browser.find_by('ytd-menu-navigation-item-renderer',class_='style-scope ytd-menu-popup-renderer', in_element=popup_renderer_3_dots, timeout=2.5).click()
+                            except Exception as e:
+                                try:
+                                    self.browser.find_by('paper-item',class_='style-scope ytd-menu-navigation-item-renderer', in_element=popup_renderer_3_dots, timeout=2.5).click()
+                                except Exception as e:
+                                    pass
+
+                        confirm_button_container = self.browser.find_by('yt-button-renderer', id_='confirm-button', class_='style-scope yt-confirm-dialog-renderer style-primary size-default', timeout=5)
+
+                        # confirm button
+                        print('comment: clicking confirm_button')
+                        self.browser.find_by('a', class_='yt-simple-endpoint style-scope yt-button-renderer', in_element=confirm_button_container, timeout=2.5).click()
+                        time.sleep(2)
+
+                        return True, True
+                    except Exception as e:
+                        print(e)
+
+                        return True, False
             except Exception as e:
                 print(e)
 
-            # self.browser.scroll(100)
-            time.sleep(2.5)
-
-            for comment_thread in self.browser.find_all(By.XPATH, "//ytd-comment-thread-renderer[@class='style-scope ytd-item-section-renderer']"):
-                pinned_element = self.browser.find(By.XPATH, "//yt-icon[@class='style-scope ytd-pinned-comment-badge-renderer']", element=comment_thread, timeout=0.5)
-                pinned = pinned_element is not None and pinned_element.is_displayed()
-
-                if pinned:
-                    continue
-
-                try:
-                    # button_3_dots
-                    button_3_dots = self.browser.find(By.XPATH, "//yt-icon-button[@id='button' and @class='dropdown-trigger style-scope ytd-menu-renderer']", element=comment_thread, timeout=2.5)
-
-                    self.browser.scroll_to_element(button_3_dots, header_element=header)
-                    time.sleep(0.5)
-                    print('comment: clicking button_3_dots')
-                    button_3_dots.click()
-
-                    popup_renderer_3_dots = self.browser.find(By.XPATH, "//ytd-menu-popup-renderer[@class='style-scope ytd-popup-container']", timeout=2)
-
-                    # dropdown menu item (first)
-                    print('comment: clicking button_3_dots-dropdown_menu_item (to pin it)')
-                    self.browser.find(By.XPATH, "//a[@class='yt-simple-endpoint style-scope ytd-menu-navigation-item-renderer']", element=popup_renderer_3_dots, timeout=2.5).click()
-
-                    confirm_button_container = self.browser.find(By.XPATH, "//yt-button-renderer[@id='confirm-button' and @class='style-scope yt-confirm-dialog-renderer style-primary size-default']", timeout=5)
-
-                    # confirm button
-                    print('comment: clicking confirm_button')
-                    self.browser.find(By.XPATH, "//a[@class='yt-simple-endpoint style-scope yt-button-renderer']", element=confirm_button_container, timeout=2.5).click()
-                    time.sleep(2)
-
-                    return True, True
-                except Exception as e:
-                    print(e)
-
-                    return True, False
+                return True, False
 
             # could not find new comment
             print('no_new_comments')
             return True, False
         except Exception as e:
-            print(e)
+            print('comment error:', e)
 
             return False, False
 
