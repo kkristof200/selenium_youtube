@@ -3,6 +3,7 @@
 # System
 from typing import List, Dict, Optional, Tuple, Callable
 import time, json
+from sys import platform
 
 # Pip
 from selenium_firefox.firefox import Firefox, By, Keys
@@ -430,7 +431,7 @@ class Youtube:
 
     # ------------------------------------------------------- Private methods -------------------------------------------------------- #
 
-    @stopit.threading_timeoutable(default=TIME_OUT_ERROR, timeout_param='timeout')
+    @stopit.signal_timeoutable(default=TIME_OUT_ERROR, timeout_param='timeout')
     def __upload(
         self,
         video_path: str,
@@ -461,6 +462,20 @@ class Youtube:
             title_field = self.browser.find_by('div', id_='textbox')
             time.sleep(0.5)
             title_field.send_keys(Keys.BACK_SPACE)
+
+            try:
+                time.sleep(0.5)
+                title_field.send_keys(Keys.COMMAND if platform == 'darwin' else Keys.CONTROL, 'a')
+                time.sleep(0.5)
+                title_field.send_keys(Keys.BACK_SPACE)
+            except Exception as e:
+                print(e)
+
+            time.sleep(0.5)
+            title_field.send_keys('a')
+            time.sleep(0.5)
+            title_field.send_keys(Keys.BACK_SPACE)
+
             time.sleep(0.5)
             title_field.send_keys(title[:MAX_TITLE_CHAR_LEN])
             print('Upload: added title')
@@ -565,9 +580,13 @@ class Youtube:
             self.browser.get(YT_URL)
 
             return False, None
+    
+    def save_cookies(self) -> None:
+        self.browser.get(YT_URL)
+        self.browser.save_cookies()
 
     # returns (commented_successfully, pinned_comment_successfully)
-    @stopit.threading_timeoutable(default=TIME_OUT_ERROR, timeout_param='timeout')
+    @stopit.signal_timeoutable(default=TIME_OUT_ERROR, timeout_param='timeout')
     def __comment_on_video(self, video_id: str, comment: str, pinned: bool = False, timeout: Optional[int] = None) -> (bool, bool):
         self.load_video(video_id)
         time.sleep(1)
@@ -697,7 +716,7 @@ class Youtube:
 
             return False, False
 
-    @stopit.threading_timeoutable(default=TIME_OUT_ERROR, timeout_param='timeout')
+    @stopit.signal_timeoutable(default=TIME_OUT_ERROR, timeout_param='timeout')
     def __login_auto(self, email: str, password: str, timeout: Optional[float] = None) -> bool:
         self.browser.get(YT_LOGIN_URL)
         time.sleep(0.5)
