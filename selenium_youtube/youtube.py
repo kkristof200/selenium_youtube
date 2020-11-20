@@ -459,7 +459,7 @@ class Youtube:
             if extra_sleep_after_upload is not None and extra_sleep_after_upload > 0:
                 time.sleep(extra_sleep_after_upload)
 
-            title_field = self.browser.find_by('div', id_='textbox')
+            title_field = self.browser.find_by('div', id_='textbox', timeout=2) or self.browser.find_by(id_='textbox', timeout=2)
             time.sleep(0.5)
             title_field.send_keys(Keys.BACK_SPACE)
 
@@ -576,11 +576,11 @@ class Youtube:
                 time.sleep(1)
         except Exception as e:
             print(e)
-                
+
             self.browser.get(YT_URL)
 
             return False, None
-    
+
     def save_cookies(self) -> None:
         self.browser.get(YT_URL)
         self.browser.save_cookies()
@@ -743,7 +743,7 @@ class Youtube:
         time.sleep(0.5)
 
         return self.is_logged_in
-    
+
     def __login_manual(self, login_prompt_callback: Optional[Callable[[str], None]] = None) -> bool:
         self.browser.get(YT_LOGIN_URL)
         time.sleep(0.5)
@@ -760,16 +760,16 @@ class Youtube:
         time.sleep(0.5)
 
         return self.is_logged_in
-    
+
     def __dismiss_alerts(self):
         dismiss_button_container = self.browser.find_by('div', id_='dismiss-button', timeout=1.5)
-        
+
         if dismiss_button_container:
             dismiss_button = self.browser.find_by('paper-button', id_='button', timeout=0.5, in_element=dismiss_button_container)
 
             if dismiss_button:
                 dismiss_button.click()
-            
+
             iframe = self.browser.find_by('iframe', class_='style-scope ytd-consent-bump-lightbox', timeout=2.5)
 
             if iframe:
@@ -779,13 +779,13 @@ class Youtube:
 
             if agree_button:
                 agree_button.click()
-            
+
             if iframe:
                 self.browser.driver.switch_to.default_content()
-    
+
     def __video_url(self, video_id: str) -> str:
         return YT_URL + '/watch?v=' + video_id
-    
+
     def __channel_videos_url(self, channel_id: str) -> str:
         return YT_URL + '/channel/' + channel_id + '/videos?view=0&sort=da&flow=grid'
 
