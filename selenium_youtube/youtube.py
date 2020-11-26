@@ -181,7 +181,7 @@ class Youtube:
             print(e)
 
             return watched, liked
-    
+
     def like(self, video_id: str) -> bool:
         self.browser.get(YT_WATCH_VIDEO_URL+video_id)
 
@@ -285,7 +285,6 @@ class Youtube:
     ) -> List[str]:
         video_ids = []
         ignored_titles = ignored_titles or []
-
         channel_id = channel_id or self.channel_id
 
         try:
@@ -453,7 +452,7 @@ class Youtube:
             time.sleep(1.5)
             self.browser.save_cookies()
 
-            self.browser.find(By.XPATH, "//input[@type='file']").send_keys(video_path)
+            self.browser.find_by('input', type='file').send_keys(video_path)
             print('Upload: uploaded video')
 
             if extra_sleep_after_upload is not None and extra_sleep_after_upload > 0:
