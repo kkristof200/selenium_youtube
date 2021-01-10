@@ -6,7 +6,8 @@ import time, json
 from sys import platform
 
 # Pip
-from selenium_firefox.firefox import Firefox, By, Keys
+from selenium_account import SeleniumAccount
+from selenium_firefox.firefox import By, Keys
 from selenium.webdriver.common.action_chains import ActionChains
 import stopit
 from kcu import strings
@@ -46,7 +47,7 @@ TIME_OUT_ERROR = 'Operation has timed out.'
 
 # ----------------------------------------------------------- class: Youtube ------------------------------------------------------------- #
 
-class Youtube:
+class Youtube(SeleniumAccount):
 
     # ------------------------------------------------------------- Init ------------------------------------------------------------- #
 
@@ -54,94 +55,58 @@ class Youtube:
         self,
         cookies_folder_path: Optional[str] = None,
         extensions_folder_path: Optional[str] = None,
-        email: Optional[str] = None,
-        password: Optional[str] = None,
         host: Optional[str] = None,
         port: Optional[int] = None,
+        cookies_id: Optional[str] = None,
+        firefox_binary_path: Optional[str] = None,
+        private: bool = False,
         screen_size: Optional[Tuple[int, int]] = None,
-        full_screen: bool = False,
-        disable_images: bool = False,
+        full_screen: bool = True,
+        headless: bool = False,
+        language: str = 'en-us',
         user_agent: Optional[str] = None,
+        disable_images: bool = False,
+        default_find_func_timeout: int = 2.5,
+        prompt_user_input_login: bool = True,
         login_prompt_callback: Optional[Callable[[str], None]] = None,
-        headless: bool = False
+        login_prompt_timeout_seconds: Optional[float] = None
     ):
-        self.browser = Firefox(
-            cookies_folder_path, extensions_folder_path, host=host, port=port, 
-            screen_size=screen_size, user_agent=user_agent, 
-            full_screen=full_screen, disable_images=disable_images,
-            headless=headless
+        super().__init__(
+            cookies_folder_path=cookies_folder_path,
+            extensions_folder_path=extensions_folder_path,
+            host=host,
+            port=port,
+            cookies_id=cookies_id,
+            firefox_binary_path=firefox_binary_path,
+            private=private,
+            screen_size=screen_size,
+            full_screen=full_screen,
+            headless=headless,
+            language=language,
+            user_agent=user_agent,
+            disable_images=disable_images,
+            default_find_func_timeout=default_find_func_timeout,
+            prompt_user_input_login=prompt_user_input_login,
+            login_prompt_callback=login_prompt_callback,
+            login_prompt_timeout_seconds=login_prompt_timeout_seconds
         )
-        self.channel_id = None
-        self.browser.get(YT_URL)
-        self.__dismiss_alerts()
 
-        try:
-            self.__internal_channel_id = cookies_folder_path.strip('/').split('/')[-1]
-        except:
-            self.__internal_channel_id = cookies_folder_path or self.browser.cookies_folder_path
-
-        try:
-            if self.browser.login_via_cookies(YT_URL, LOGIN_INFO_COOKIE_NAME):
-                time.sleep(0.5)
-                self.browser.get(YT_URL)
-                time.sleep(0.5)
-                self.browser.save_cookies()
-                time.sleep(0.5)
-                self.channel_id = self.get_current_channel_id()
-            elif email and password:
-                self.login(email=email, password=password, login_prompt_callback=login_prompt_callback)
-        except Exception as e:
-            print(e)
-            self.quit()
-
-            raise
+        if self.did_log_in_at_init:
+            self.channel_id = self.get_current_channel_id()
+        else:
+            self.__dismiss_alerts()
 
 
-    # ------------------------------------------------------ Public properties ------------------------------------------------------- #
+    # ---------------------------------------------------------- Overrides ----------------------------------------------------------- #
 
-    @property
-    def is_logged_in(self) -> bool:
+    def _home_url(self) -> str:
+        return YT_URL
+
+    def _is_logged_in(self) -> bool:
         return self.browser.has_cookie(LOGIN_INFO_COOKIE_NAME)
 
 
     # -------------------------------------------------------- Public methods -------------------------------------------------------- #
-
-    def login(
-        self,
-        email: Optional[str],
-        password: Optional[str],
-        login_prompt_callback: Optional[Callable[[str], None]] = None
-    ) -> bool:
-        org_url = self.browser.driver.current_url
-        self.browser.get(YT_URL)
-        time.sleep(0.5)
-
-        logged_in = self.is_logged_in
-
-        if not logged_in and email is not None and password is not None:
-            try:
-                logged_in = self.__login_auto(email, password, timeout=30)
-            except Exception as e:
-                print('__login_auto', e)
-
-                logged_in = False
-
-        if not logged_in:
-            print('Could not log you in automatically.')
-            logged_in = self.__login_manual(login_prompt_callback=login_prompt_callback)
-
-        if logged_in:
-            time.sleep(0.5)
-            self.browser.get(YT_URL)
-            time.sleep(0.5)
-            self.browser.save_cookies()
-            time.sleep(0.5)
-            self.channel_id = self.get_current_channel_id()
-
-        time.sleep(0.5)
-        self.browser.get(org_url)
-
-        return logged_in
 
     def watch_video(
         self,
@@ -715,51 +680,6 @@ class Youtube:
 
             return False, False
 
-    @stopit.signal_timeoutable(default=TIME_OUT_ERROR, timeout_param='timeout')
-    def __login_auto(self, email: str, password: str, timeout: Optional[float] = None) -> bool:
-        self.browser.get(YT_LOGIN_URL)
-        time.sleep(0.5)
-
-        email_field = self.browser.find_by('input', { 'id': 'identifierId', 'type': 'email' })
-        email_field.click()
-        self.browser.send_keys_delay_random(email_field, email)
-        time.sleep(1)
-        self.browser.find_by('div', {'jscontroller': 'VXdfxd', 'role': 'button'}).click()
-        time.sleep(1)
-
-        action = ActionChains(self.browser.driver)
-
-        pass_container = self.browser.find_by('div', { 'id': 'password', 'jscontroller': 'pxq3x' })
-        pass_field = self.browser.find_by('input', { 'type': 'password' }, in_element=pass_container)
-        action.move_to_element(pass_field).perform()
-        pass_field.click()
-        self.browser.send_keys_delay_random(pass_field, password)
-        time.sleep(1)
-        self.browser.find_by('div', {'jscontroller': 'VXdfxd', 'role': 'button'}).click()
-        time.sleep(1)
-
-        self.browser.get(YT_URL)
-        time.sleep(0.5)
-
-        return self.is_logged_in
-
-    def __login_manual(self, login_prompt_callback: Optional[Callable[[str], None]] = None) -> bool:
-        self.browser.get(YT_LOGIN_URL)
-        time.sleep(0.5)
-
-        try:
-            if login_prompt_callback is not None:
-                login_prompt_callback(self.__internal_channel_id + ' needs manual input to log in.')
-
-            input('Log in then press return')
-        except Exception as e:
-            print('__login_manual', e)
-
-        self.browser.get(YT_URL)
-        time.sleep(0.5)
-
-        return self.is_logged_in
-
     def __dismiss_alerts(self):
         dismiss_button_container = self.browser.find_by('div', id_='dismiss-button', timeout=1.5)
 
@@ -789,4 +709,4 @@ class Youtube:
         return YT_URL + '/channel/' + channel_id + '/videos?view=0&sort=da&flow=grid'
 
 
-# ---------------------------------------------------------------------------------------------------------------------------------------- #s
+# ---------------------------------------------------------------------------------------------------------------------------------------- #
