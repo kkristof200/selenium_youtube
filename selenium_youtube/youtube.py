@@ -6,10 +6,9 @@ import time, json
 from sys import platform
 
 # Pip
-from selenium_account import SeleniumAccount, time_out_error
+from selenium_account import SeleniumAccount
 from selenium_firefox.firefox import By, Keys
 from selenium.webdriver.common.action_chains import ActionChains
-import stopit
 from kcu import strings
 
 from bs4 import BeautifulSoup as bs
