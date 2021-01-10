@@ -185,7 +185,20 @@ class Youtube(SeleniumAccount):
         extra_sleep_after_upload: Optional[int] = None,
         extra_sleep_before_publish: Optional[int] = None
     ) -> (bool, Optional[str]):
-        res = self.__upload(video_path, title, description, tags, made_for_kids=made_for_kids, visibility=visibility, thumbnail_image_path=thumbnail_image_path, extra_sleep_after_upload=extra_sleep_after_upload, extra_sleep_before_publish=extra_sleep_before_publish, timeout=_timeout)
+        res = self._run_with_timout(
+            self.__upload,
+            custom_error_message='Uplooad',
+            timeout_value=_timeout,
+
+            video_path=video_path,
+            title=title,
+            tags=tags,
+            made_for_kids=made_for_kids,
+            visibility=visibility,
+            thumbnail_image_path=thumbnail_image_path,
+            extra_sleep_after_upload=extra_sleep_after_upload,
+            extra_sleep_before_publish=extra_sleep_before_publish
+        )
 
         if type(res) == TimeoutError:
             print(res)
@@ -233,7 +246,15 @@ class Youtube(SeleniumAccount):
         pinned: bool = False,
         _timeout: Optional[int] = 15
     ) -> (bool, bool):
-        res = self.__comment_on_video(video_id, comment, pinned=pinned, timeout=_timeout)
+        res = self._run_with_timout(
+            self.__upload,
+            custom_error_message='Uplooad',
+            timeout_value=_timeout,
+
+            video_id=video_id,
+            comment=comment,
+            pinned=pinned
+        )
 
         if type(res) == TimeoutError:
             print(res)
@@ -394,7 +415,6 @@ class Youtube(SeleniumAccount):
 
     # ------------------------------------------------------- Private methods -------------------------------------------------------- #
 
-    @stopit.signal_timeoutable(default=time_out_error('Upload'), timeout_param='timeout')
     def __upload(
         self,
         video_path: str,
@@ -549,7 +569,6 @@ class Youtube(SeleniumAccount):
         self.browser.save_cookies()
 
     # returns (commented_successfully, pinned_comment_successfully)
-    @stopit.signal_timeoutable(default=time_out_error('Comment'), timeout_param='timeout')
     def __comment_on_video(self, video_id: str, comment: str, pinned: bool = False, timeout: Optional[int] = None) -> (bool, bool):
         self.load_video(video_id)
         time.sleep(1)
