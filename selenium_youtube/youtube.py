@@ -136,12 +136,12 @@ class Youtube(SeleniumAccount):
             seconds_to_watch = percent_to_watch / 100 * length_s if percent_to_watch >= 0 else length_s
 
             if seconds_to_watch > 0:
-                print('Goinng to watch', seconds_to_watch)
+                self.print('Goinng to watch', seconds_to_watch)
                 time.sleep(seconds_to_watch)
 
             return watched, self.like(video_id) if like and self.is_logged_in else False
         except Exception as e:
-            print(e)
+            self.print(e)
 
             return watched, liked
 
@@ -167,7 +167,7 @@ class Youtube(SeleniumAccount):
 
             return False
         except Exception as e:
-            print(e)
+            self.print(e)
 
             return False
 
@@ -200,8 +200,8 @@ class Youtube(SeleniumAccount):
             extra_sleep_before_publish=extra_sleep_before_publish
         )
 
-        if type(res) == TimeoutError:
-            print(res)
+        if isinstance(res, Exception):
+            self.print(res)
 
             return False, None
 
@@ -227,7 +227,7 @@ class Youtube(SeleniumAccount):
                     if href and 'channel/' in href:
                         return strings.between(href, 'channel/', '?')
         except Exception as e:
-            print(e)
+            self.print(e)
 
         if not _click_avatar:
             return self.get_current_channel_id(_click_avatar=True, _get_home_url=_get_home_url)
@@ -257,7 +257,7 @@ class Youtube(SeleniumAccount):
         )
 
         if type(res) == TimeoutError:
-            print(res)
+            self.print(res)
 
             return False, False
 
@@ -320,7 +320,7 @@ class Youtube(SeleniumAccount):
                     if vid_id is not None and vid_id not in video_ids:
                         video_ids.append(vid_id)
         except Exception as e:
-            print(e)
+            self.print(e)
 
         return video_ids
 
@@ -330,7 +330,7 @@ class Youtube(SeleniumAccount):
         period: AnalyticsPeriod = AnalyticsPeriod.LAST_28_DAYS
     ) -> bool:
         if not self.channel_id:
-            print('No channel ID found')
+            self.print('No channel ID found')
 
             return False
 
@@ -341,7 +341,7 @@ class Youtube(SeleniumAccount):
 
             return True
         except Exception as e:
-            print(e)
+            self.print(e)
 
             return False
 
@@ -369,7 +369,7 @@ class Youtube(SeleniumAccount):
 
             return True, violation_text_number
         except Exception as e:
-            print(e)
+            self.print(e)
 
             return False, 0
 
@@ -402,7 +402,7 @@ class Youtube(SeleniumAccount):
 
             return self.browser.find_by('ytve-endscreen-editor-options-panel', class_='style-scope ytve-editor', timeout=0.5) is None
         except Exception as e:
-            print(e)
+            self.print(e)
 
             return False
 
@@ -437,7 +437,7 @@ class Youtube(SeleniumAccount):
             self.browser.save_cookies()
 
             self.browser.find_by('input', type='file').send_keys(video_path)
-            print('Upload: uploaded video')
+            self.print('Upload: uploaded video')
 
             if extra_sleep_after_upload is not None and extra_sleep_after_upload > 0:
                 time.sleep(extra_sleep_after_upload)
@@ -452,7 +452,7 @@ class Youtube(SeleniumAccount):
                 time.sleep(0.5)
                 title_field.send_keys(Keys.BACK_SPACE)
             except Exception as e:
-                print(e)
+                self.print(e)
 
             time.sleep(0.5)
             title_field.send_keys('a')
@@ -461,7 +461,7 @@ class Youtube(SeleniumAccount):
 
             time.sleep(0.5)
             title_field.send_keys(title[:MAX_TITLE_CHAR_LEN])
-            print('Upload: added title')
+            self.print('Upload: added title')
             description_container = self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/ytcp-uploads-basics/ytcp-mention-textbox[2]")
             description_field = self.browser.find(By.ID, "textbox", element=description_container)
             description_field.click()
@@ -469,46 +469,46 @@ class Youtube(SeleniumAccount):
             description_field.clear()
             time.sleep(0.5)
             description_field.send_keys(description[:MAX_DESCRIPTION_CHAR_LEN])
-            print('Upload: added description')
+            self.print('Upload: added description')
 
             if thumbnail_image_path is not None:
                 try:
                     self.browser.find(By.XPATH, "//input[@id='file-loader']").send_keys(thumbnail_image_path)
                     time.sleep(0.5)
-                    print('Upload: added thumbnail')
+                    self.print('Upload: added thumbnail')
                 except Exception as e:
-                    print('Upload: Thumbnail error: ', e)
+                    self.print('Upload: Thumbnail error: ', e)
 
             self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/div/ytcp-button/div").click()
-            print("Upload: clicked more options")
+            self.print("Upload: clicked more options")
 
             if tags:
                 tags_container = self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/ytcp-uploads-advanced/ytcp-form-input-container/div[1]/div[2]/ytcp-free-text-chip-bar/ytcp-chip-bar/div")
                 tags_field = self.browser.find(By.ID, 'text-input', tags_container)
                 tags_field.send_keys(','.join([t for t in tags if len(t) <= MAX_TAG_CHAR_LEN])[:MAX_TAGS_CHAR_LEN-1] + ',')
-                print("Upload: added tags")
+                self.print("Upload: added tags")
 
             kids_selection_name = 'MADE_FOR_KIDS' if made_for_kids else 'NOT_MADE_FOR_KIDS'
             kids_section = self.browser.find(By.NAME, kids_selection_name)
             self.browser.find(By.ID, 'radioLabel', kids_section).click()
-            print('Upload: did set', kids_selection_name)
+            self.print('Upload: did set', kids_selection_name)
             
             self.browser.find(By.ID, 'next-button').click()
-            print('Upload: clicked first next')
+            self.print('Upload: clicked first next')
 
             self.browser.find(By.ID, 'next-button').click()
-            print('Upload: clicked second next')
+            self.print('Upload: clicked second next')
 
             visibility_main_button = self.browser.find(By.NAME, visibility.name)
             self.browser.find(By.ID, 'radioLabel', visibility_main_button).click()
-            print('Upload: set to', visibility.name)
+            self.print('Upload: set to', visibility.name)
 
             try:
                 video_url_container = self.browser.find(By.XPATH, "//span[@class='video-url-fadeable style-scope ytcp-video-info']", timeout=2.5)
                 video_url_element = self.browser.find(By.XPATH, "//a[@class='style-scope ytcp-video-info']", element=video_url_container, timeout=2.5)
                 video_id = video_url_element.get_attribute('href').split('/')[-1]
             except Exception as e:
-                print(e)
+                self.print(e)
                 video_id = None
 
             i=0
@@ -532,14 +532,14 @@ class Youtube(SeleniumAccount):
                         if done_button.get_attribute('aria-disabled') == 'false':
                             done_button.click()
 
-                            print('Upload: published')
+                            self.print('Upload: published')
 
                             time.sleep(3)
                             self.browser.get(YT_URL)
 
                             return True, video_id
                 except Exception as e:
-                    print(e)
+                    self.print(e)
                     i += 1
 
                     if i >= 20:
@@ -548,7 +548,7 @@ class Youtube(SeleniumAccount):
                         if done_button.get_attribute('aria-disabled') == 'false':
                             done_button.click()
 
-                            print('Upload: published')
+                            self.print('Upload: published')
 
                             time.sleep(3)
                             self.browser.get(YT_URL)
@@ -559,7 +559,7 @@ class Youtube(SeleniumAccount):
 
                 time.sleep(1)
         except Exception as e:
-            print(e)
+            self.print(e)
 
             self.browser.get(YT_URL)
 
@@ -589,27 +589,27 @@ class Youtube(SeleniumAccount):
             # time.sleep(10000)
             header = self.browser.find_by('div', id_='masthead-container', class_='style-scope ytd-app')
 
-            print('comment: looking for \'comment_placeholder_area\'')
+            self.print('comment: looking for \'comment_placeholder_area\'')
             comment_placeholder_area = self.browser.find_by('div', id_='placeholder-area', timeout=5)
 
-            print('comment: scrollinng to \'comment_placeholder_area\'')
+            self.print('comment: scrollinng to \'comment_placeholder_area\'')
             self.browser.scroll_to_element(comment_placeholder_area, header_element=header)
             time.sleep(0.5)
 
-            print('comment: getting focus')
+            self.print('comment: getting focus')
             try:
                 self.browser.find_by('div', id_='simple-box', class_='style-scope ytd-comments-header-renderer',timeout=0.5).click()
                 self.browser.find_by('ytd-comment-simplebox-renderer', class_='style-scope ytd-comments-header-renderer',timeout=0.5).click()
                 # comment_placeholder_area.click()
                 self.browser.find_by('div', id_='placeholder-area', timeout=0.5).click()
             except Exception as e:
-                print(e)
+                self.print(e)
 
-            print('comment: sending keys')
+            self.print('comment: sending keys')
             # self.browser.find_by('div', id_='contenteditable-root', timeout=0.5).click()
             self.browser.find_by('div', id_='contenteditable-root', timeout=0.5).send_keys(comment)
 
-            print('comment: clicking post_comment')
+            self.print('comment: clicking post_comment')
             self.browser.find_by('ytd-button-renderer', id_='submit-button', class_='style-scope ytd-commentbox style-primary size-default',timeout=0.5).click()
 
             # self.browser.find(By.XPATH, "//ytd-button-renderer[@id='submit-button' and @class='style-scope ytd-commentbox style-primary size-default']", timeout=0.5).click()
@@ -623,7 +623,7 @@ class Youtube(SeleniumAccount):
                     self.browser.scroll_to_element(dropdown_menu, header_element=header)
                     time.sleep(0.5)
 
-                    print('comment: clicking dropdown_trigger (open)')
+                    self.print('comment: clicking dropdown_trigger (open)')
                     self.browser.find_by('paper-button', id_='label', class_='dropdown-trigger style-scope yt-dropdown-menu', in_element=dropdown_menu, timeout=2.5).click()
 
                     try:
@@ -634,16 +634,16 @@ class Youtube(SeleniumAccount):
 
                         if last_dropdown_element.get_attribute('aria-selected') == 'false':
                             time.sleep(0.25)
-                            print('comment: clicking last_dropdown_element')
+                            self.print('comment: clicking last_dropdown_element')
                             last_dropdown_element.click()
                         else:
-                            print('comment: clicking dropdown_trigger (close) (did not click last_dropdown_element (did not find it))')
+                            self.print('comment: clicking dropdown_trigger (close) (did not click last_dropdown_element (did not find it))')
                             self.browser.find_by('paper-button', id_='label', class_='dropdown-trigger style-scope yt-dropdown-menu', in_element=dropdown_menu, timeout=2.5).click()
                     except Exception as e:
-                        print(e)
+                        self.print(e)
                         self.browser.find_by('paper-button', id_='label', class_='dropdown-trigger style-scope yt-dropdown-menu', in_element=dropdown_menu, timeout=2.5).click()
                 except Exception as e:
-                    print(e)
+                    self.print(e)
 
                 # self.browser.scroll(100)
                 time.sleep(2.5)
@@ -661,7 +661,7 @@ class Youtube(SeleniumAccount):
 
                         self.browser.scroll_to_element(button_3_dots, header_element=header)
                         time.sleep(0.5)
-                        print('comment: clicking button_3_dots')
+                        self.print('comment: clicking button_3_dots')
                         button_3_dots.click()
 
                         popup_renderer_3_dots = self.browser.find_by('ytd-menu-popup-renderer', class_='ytd-menu-popup-renderer', timeout=2)
@@ -683,25 +683,25 @@ class Youtube(SeleniumAccount):
                         confirm_button_container = self.browser.find_by('yt-button-renderer', id_='confirm-button', class_='style-scope yt-confirm-dialog-renderer style-primary size-default', timeout=5)
 
                         # confirm button
-                        print('comment: clicking confirm_button')
+                        self.print('comment: clicking confirm_button')
                         self.browser.find_by('a', class_='yt-simple-endpoint style-scope yt-button-renderer', in_element=confirm_button_container, timeout=2.5).click()
                         time.sleep(2)
 
                         return True, True
                     except Exception as e:
-                        print(e)
+                        self.print(e)
 
                         return True, False
             except Exception as e:
-                print(e)
+                self.print(e)
 
                 return True, False
 
             # could not find new comment
-            print('no_new_comments')
+            self.print('no_new_comments')
             return True, False
         except Exception as e:
-            print('comment error:', e)
+            self.print('comment error:', e)
 
             return False, False
 
