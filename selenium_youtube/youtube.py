@@ -6,7 +6,7 @@ import time, json
 from sys import platform
 
 # Pip
-from selenium_account import SeleniumAccount
+from selenium_account import SeleniumAccount, time_out_error
 from selenium_firefox.firefox import By, Keys
 from selenium.webdriver.common.action_chains import ActionChains
 import stopit
@@ -394,7 +394,7 @@ class Youtube(SeleniumAccount):
 
     # ------------------------------------------------------- Private methods -------------------------------------------------------- #
 
-    @stopit.signal_timeoutable(default=self.time_out_error('Upload'), timeout_param='timeout')
+    @stopit.signal_timeoutable(default=time_out_error('Upload'), timeout_param='timeout')
     def __upload(
         self,
         video_path: str,
@@ -549,7 +549,7 @@ class Youtube(SeleniumAccount):
         self.browser.save_cookies()
 
     # returns (commented_successfully, pinned_comment_successfully)
-    @stopit.signal_timeoutable(default=self.time_out_error('Comment'), timeout_param='timeout')
+    @stopit.signal_timeoutable(default=time_out_error('Comment'), timeout_param='timeout')
     def __comment_on_video(self, video_id: str, comment: str, pinned: bool = False, timeout: Optional[int] = None) -> (bool, bool):
         self.load_video(video_id)
         time.sleep(1)
