@@ -94,6 +94,7 @@ class Youtube(SeleniumAccount):
             self.channel_id = self.get_current_channel_id()
         else:
             self.__dismiss_alerts()
+            self.channel_id = None
 
 
     # ---------------------------------------------------------- Overrides ----------------------------------------------------------- #
