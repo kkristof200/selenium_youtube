@@ -39,7 +39,6 @@ MAX_TAGS_CHAR_LEN           = 400
 MAX_TAG_CHAR_LEN            = 30
 
 LOGIN_INFO_COOKIE_NAME = 'LOGIN_INFO'
-TIME_OUT_ERROR = 'Operation has timed out.'
 
 # ---------------------------------------------------------------------------------------------------------------------------------------- #
 
@@ -188,8 +187,8 @@ class Youtube(SeleniumAccount):
     ) -> (bool, Optional[str]):
         res = self.__upload(video_path, title, description, tags, made_for_kids=made_for_kids, visibility=visibility, thumbnail_image_path=thumbnail_image_path, extra_sleep_after_upload=extra_sleep_after_upload, extra_sleep_before_publish=extra_sleep_before_publish, timeout=_timeout)
 
-        if res == TIME_OUT_ERROR:
-            print('Upload:', TIME_OUT_ERROR)
+        if type(res) == TimeoutError:
+            print(res)
 
             return False, None
 
@@ -236,8 +235,8 @@ class Youtube(SeleniumAccount):
     ) -> (bool, bool):
         res = self.__comment_on_video(video_id, comment, pinned=pinned, timeout=_timeout)
 
-        if res == TIME_OUT_ERROR:
-            print('Comment:', TIME_OUT_ERROR)
+        if type(res) == TimeoutError:
+            print(res)
 
             return False, False
 
@@ -395,7 +394,7 @@ class Youtube(SeleniumAccount):
 
     # ------------------------------------------------------- Private methods -------------------------------------------------------- #
 
-    @stopit.signal_timeoutable(default=TIME_OUT_ERROR, timeout_param='timeout')
+    @stopit.signal_timeoutable(default=self.time_out_error('Uploading'), timeout_param='timeout')
     def __upload(
         self,
         video_path: str,
@@ -550,7 +549,7 @@ class Youtube(SeleniumAccount):
         self.browser.save_cookies()
 
     # returns (commented_successfully, pinned_comment_successfully)
-    @stopit.signal_timeoutable(default=TIME_OUT_ERROR, timeout_param='timeout')
+    @stopit.signal_timeoutable(default=self.time_out_error('Comment'), timeout_param='timeout')
     def __comment_on_video(self, video_id: str, comment: str, pinned: bool = False, timeout: Optional[int] = None) -> (bool, bool):
         self.load_video(video_id)
         time.sleep(1)
