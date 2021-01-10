@@ -176,7 +176,7 @@ class Youtube(SeleniumAccount):
         video_path: str,
         title: str,
         description: str,
-        tags: List[str],
+        tags: Optional[List[str]] = None,
         made_for_kids: bool = False,
         visibility: Visibility = Visibility.PUBLIC,
         thumbnail_image_path: Optional[str] = None,
@@ -186,11 +186,12 @@ class Youtube(SeleniumAccount):
     ) -> (bool, Optional[str]):
         res = self._run_with_timout(
             self.__upload,
-            custom_error_message='Uplooad',
+            custom_error_message='Upload',
             timeout_value=_timeout,
 
             video_path=video_path,
             title=title,
+            description=description,
             tags=tags,
             made_for_kids=made_for_kids,
             visibility=visibility,
@@ -246,8 +247,8 @@ class Youtube(SeleniumAccount):
         _timeout: Optional[int] = 15
     ) -> (bool, bool):
         res = self._run_with_timout(
-            self.__upload,
-            custom_error_message='Uplooad',
+            self.__comment_on_video,
+            custom_error_message='Comment',
             timeout_value=_timeout,
 
             video_id=video_id,
@@ -419,7 +420,7 @@ class Youtube(SeleniumAccount):
         video_path: str,
         title: str,
         description: str,
-        tags: List[str],
+        tags: Optional[List[str]] = None,
         made_for_kids: bool = False,
         visibility: Visibility = Visibility.PUBLIC,
         thumbnail_image_path: Optional[str] = None,
@@ -481,10 +482,11 @@ class Youtube(SeleniumAccount):
             self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/div/ytcp-button/div").click()
             print("Upload: clicked more options")
 
-            tags_container = self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/ytcp-uploads-advanced/ytcp-form-input-container/div[1]/div[2]/ytcp-free-text-chip-bar/ytcp-chip-bar/div")
-            tags_field = self.browser.find(By.ID, 'text-input', tags_container)
-            tags_field.send_keys(','.join([t for t in tags if len(t) <= MAX_TAG_CHAR_LEN])[:MAX_TAGS_CHAR_LEN-1] + ',')
-            print("Upload: added tags")
+            if tags:
+                tags_container = self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/ytcp-uploads-advanced/ytcp-form-input-container/div[1]/div[2]/ytcp-free-text-chip-bar/ytcp-chip-bar/div")
+                tags_field = self.browser.find(By.ID, 'text-input', tags_container)
+                tags_field.send_keys(','.join([t for t in tags if len(t) <= MAX_TAG_CHAR_LEN])[:MAX_TAGS_CHAR_LEN-1] + ',')
+                print("Upload: added tags")
 
             kids_selection_name = 'MADE_FOR_KIDS' if made_for_kids else 'NOT_MADE_FOR_KIDS'
             kids_section = self.browser.find(By.NAME, kids_selection_name)
@@ -568,7 +570,13 @@ class Youtube(SeleniumAccount):
         self.browser.save_cookies()
 
     # returns (commented_successfully, pinned_comment_successfully)
-    def __comment_on_video(self, video_id: str, comment: str, pinned: bool = False, timeout: Optional[int] = None) -> (bool, bool):
+    def __comment_on_video(
+        self,
+        video_id: str,
+        comment: str,
+        pinned: bool = False,
+        timeout: Optional[int] = None
+    ) -> (bool, bool):
         self.load_video(video_id)
         time.sleep(1)
         self.browser.scroll(150)
