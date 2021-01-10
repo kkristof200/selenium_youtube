@@ -402,12 +402,6 @@ class Youtube(SeleniumAccount):
 
             return False
 
-    def quit(self):
-        try:
-            self.browser.driver.quit()
-        except:
-            pass
-
 
     # ------------------------------------------------------- Private methods -------------------------------------------------------- #
 
@@ -561,10 +555,6 @@ class Youtube(SeleniumAccount):
             self.browser.get(YT_URL)
 
             return False, None
-
-    def save_cookies(self) -> None:
-        self.browser.get(YT_URL)
-        self.browser.save_cookies()
 
     # returns (commented_successfully, pinned_comment_successfully)
     @signal_timeoutable(name='Comment')
