@@ -10,6 +10,7 @@ from selenium_account import SeleniumAccount
 from selenium_firefox.firefox import By, Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from kcu import strings
+from kstopit import signal_timeoutable, TimeoutException
 
 from bs4 import BeautifulSoup as bs
 
@@ -180,15 +181,11 @@ class Youtube(SeleniumAccount):
         made_for_kids: bool = False,
         visibility: Visibility = Visibility.PUBLIC,
         thumbnail_image_path: Optional[str] = None,
-        _timeout: Optional[int] = 60*3, # 3 min
+        timeout: Optional[int] = 60*3, # 3 min
         extra_sleep_after_upload: Optional[int] = None,
         extra_sleep_before_publish: Optional[int] = None
     ) -> (bool, Optional[str]):
-        res = self._run_with_timout(
-            self.__upload,
-            custom_error_message='Upload',
-            timeout_value=_timeout,
-
+        res = self.__upload(
             video_path=video_path,
             title=title,
             description=description,
@@ -197,7 +194,8 @@ class Youtube(SeleniumAccount):
             visibility=visibility,
             thumbnail_image_path=thumbnail_image_path,
             extra_sleep_after_upload=extra_sleep_after_upload,
-            extra_sleep_before_publish=extra_sleep_before_publish
+            extra_sleep_before_publish=extra_sleep_before_publish,
+            timeout=timeout
         )
 
         if isinstance(res, Exception):
@@ -244,19 +242,16 @@ class Youtube(SeleniumAccount):
         video_id: str,
         comment: str,
         pinned: bool = False,
-        _timeout: Optional[int] = 15
+        timeout: Optional[int] = 15
     ) -> (bool, bool):
-        res = self._run_with_timout(
-            self.__comment_on_video,
-            custom_error_message='Comment',
-            timeout_value=_timeout,
-
+        res = self.__comment_on_video(
             video_id=video_id,
             comment=comment,
-            pinned=pinned
+            pinned=pinned,
+            timeout=timeout
         )
 
-        if type(res) == TimeoutError:
+        if isinstance(res, Exception):
             self.print(res)
 
             return False, False
@@ -415,6 +410,7 @@ class Youtube(SeleniumAccount):
 
     # ------------------------------------------------------- Private methods -------------------------------------------------------- #
 
+    @signal_timeoutable(name='Upload')
     def __upload(
         self,
         video_path: str,
@@ -570,6 +566,7 @@ class Youtube(SeleniumAccount):
         self.browser.save_cookies()
 
     # returns (commented_successfully, pinned_comment_successfully)
+    @signal_timeoutable(name='Comment')
     def __comment_on_video(
         self,
         video_id: str,
