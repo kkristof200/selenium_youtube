@@ -394,7 +394,7 @@ class Youtube(SeleniumAccount):
 
     # ------------------------------------------------------- Private methods -------------------------------------------------------- #
 
-    @stopit.signal_timeoutable(default=self.time_out_error('Uploading'), timeout_param='timeout')
+    @stopit.signal_timeoutable(default=self.time_out_error('Upload'), timeout_param='timeout')
     def __upload(
         self,
         video_path: str,
