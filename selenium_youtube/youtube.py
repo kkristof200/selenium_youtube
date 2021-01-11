@@ -26,12 +26,13 @@ from .enums.analytics_tab import AnalyticsTab
 
 # --------------------------------------------------------------- Defines ---------------------------------------------------------------- #
 
-YT_URL          = 'https://www.youtube.com'
-YT_STUDIO_URL   = 'https://studio.youtube.com'
-YT_UPLOAD_URL   = 'https://www.youtube.com/upload'
-YT_LOGIN_URL    = 'https://accounts.google.com/signin/v2/identifier?service=youtube'
+YT_URL              = 'https://www.youtube.com'
+YT_STUDIO_URL       = 'https://studio.youtube.com'
+YT_UPLOAD_URL       = 'https://www.youtube.com/upload'
+YT_LOGIN_URL        = 'https://accounts.google.com/signin/v2/identifier?service=youtube'
 YT_STUDIO_VIDEO_URL = 'https://studio.youtube.com/video/{}/edit/basic'
-YT_WATCH_VIDEO_URL = 'https://www.youtube.com/watch?v='
+YT_WATCH_VIDEO_URL  = 'https://www.youtube.com/watch?v={}'
+YT_PROFILE_URL      = 'https://www.youtube.com/channel/{}'
 
 MAX_TITLE_CHAR_LEN          = 100
 MAX_DESCRIPTION_CHAR_LEN    = 5000
@@ -90,11 +91,8 @@ class Youtube(SeleniumAccount):
             login_prompt_timeout_seconds=login_prompt_timeout_seconds
         )
 
-        if self.did_log_in_at_init:
-            self.channel_id = self.get_current_channel_id()
-        else:
+        if not self.did_log_in_at_init:
             self.__dismiss_alerts()
-            self.channel_id = None
 
 
     # ---------------------------------------------------------- Overrides ----------------------------------------------------------- #
@@ -105,6 +103,11 @@ class Youtube(SeleniumAccount):
     def _is_logged_in(self) -> bool:
         return self.browser.has_cookie(LOGIN_INFO_COOKIE_NAME)
 
+    def _get_current_user_id(self) -> Optional[str]:
+        return self.get_current_channel_id()
+
+    def _profile_url_format(self) -> Optional[str]:
+        return YT_PROFILE_URL
 
     # -------------------------------------------------------- Public methods -------------------------------------------------------- #
 
@@ -118,7 +121,7 @@ class Youtube(SeleniumAccount):
         liked = False
 
         try:
-            self.browser.get(YT_WATCH_VIDEO_URL+video_id)
+            self.browser.get(YT_WATCH_VIDEO_URL.format(video_id))
             length_s = float(strings.between(self.browser.driver.page_source, 'detailpage\\\\u0026len=', '\\\\'))
             play_button = self.browser.find_by('button', class_='ytp-large-play-button ytp-button', timeout=0.5)
 
@@ -148,7 +151,7 @@ class Youtube(SeleniumAccount):
             return watched, liked
 
     def like(self, video_id: str) -> bool:
-        self.browser.get(YT_WATCH_VIDEO_URL+video_id)
+        self.browser.get(YT_WATCH_VIDEO_URL.format(video_id))
 
         try:
             buttons_container = self.browser.find_by('div', id_='top-level-buttons', class_='style-scope ytd-menu-renderer', timeout=1.5)
