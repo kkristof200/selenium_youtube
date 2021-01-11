@@ -428,7 +428,7 @@ class Youtube(SeleniumAccount):
         try:
             self.get(YT_UPLOAD_URL)
             time.sleep(1.5)
-            self.browser.save_cookies()
+            self.save_cookies()
 
             self.browser.find_by('input', type='file').send_keys(video_path)
             self.print('Upload: uploaded video')
