@@ -121,7 +121,7 @@ class Youtube(SeleniumAccount):
         liked = False
 
         try:
-            self.browser.get(YT_WATCH_VIDEO_URL.format(video_id))
+            self.get(YT_WATCH_VIDEO_URL.format(video_id))
             length_s = float(strings.between(self.browser.driver.page_source, 'detailpage\\\\u0026len=', '\\\\'))
             play_button = self.browser.find_by('button', class_='ytp-large-play-button ytp-button', timeout=0.5)
 
@@ -151,7 +151,7 @@ class Youtube(SeleniumAccount):
             return watched, liked
 
     def like(self, video_id: str) -> bool:
-        self.browser.get(YT_WATCH_VIDEO_URL.format(video_id))
+        self.get(YT_WATCH_VIDEO_URL.format(video_id))
 
         try:
             buttons_container = self.browser.find_by('div', id_='top-level-buttons', class_='style-scope ytd-menu-renderer', timeout=1.5)
@@ -211,7 +211,7 @@ class Youtube(SeleniumAccount):
 
     def get_current_channel_id(self, _click_avatar: bool = False, _get_home_url: bool = False) -> Optional[str]:
         if _get_home_url:
-            self.browser.get(YT_URL)
+            self.get(YT_URL)
 
         try:
             if _click_avatar:
@@ -239,7 +239,7 @@ class Youtube(SeleniumAccount):
         return None
 
     def load_video(self, video_id: str):
-        self.browser.get(self.__video_url(video_id))
+        self.get(self.__video_url(video_id))
 
     def comment_on_video(
         self,
@@ -269,10 +269,10 @@ class Youtube(SeleniumAccount):
     ) -> List[str]:
         video_ids = []
         ignored_titles = ignored_titles or []
-        channel_id = channel_id or self.channel_id
+        channel_id = channel_id or self.current_user_id
 
         try:
-            self.browser.get(self.__channel_videos_url(channel_id))
+            self.get(self.__channel_videos_url(channel_id))
             last_page_source = self.browser.driver.page_source
 
             while True:
@@ -328,15 +328,15 @@ class Youtube(SeleniumAccount):
         tab: AnalyticsTab = AnalyticsTab.OVERVIEW,
         period: AnalyticsPeriod = AnalyticsPeriod.LAST_28_DAYS
     ) -> bool:
-        if not self.channel_id:
+        if not self.current_user_id:
             self.print('No channel ID found')
 
             return False
 
-        url = YT_STUDIO_URL.rstrip('/') + '/channel/' + self.channel_id + '/analytics/tab-' + tab.value + '/period-' + period.value
+        url = '{}/channel/{}/analytics/tab-{}/period-{}'.format(YT_STUDIO_URL.rstrip('/'), self.current_user_id, tab.value, period.value)
 
         try:
-            self.browser.get(url)
+            self.get(url)
 
             return True
         except Exception as e:
@@ -345,7 +345,7 @@ class Youtube(SeleniumAccount):
             return False
 
     def get_violations(self) -> Tuple[bool, int]: # has_warning, strikes
-        self.browser.get(YT_STUDIO_URL)
+        self.get(YT_STUDIO_URL)
 
         try:
             violations_container = self.browser.find_by('div', class_='style-scope ytcd-strikes-item')
@@ -373,7 +373,7 @@ class Youtube(SeleniumAccount):
             return False, 0
 
     def add_endscreen(self, video_id: str, max_wait_seconds_for_processing: float = 0) -> bool:
-        self.browser.get(YT_STUDIO_VIDEO_URL.format(video_id))
+        self.get(YT_STUDIO_VIDEO_URL.format(video_id))
 
         try:
             start_time = time.time()
@@ -422,11 +422,11 @@ class Youtube(SeleniumAccount):
         extra_sleep_before_publish: Optional[int] = None,
         timeout: Optional[int] = None
     ) -> (bool, Optional[str]):
-        self.browser.get(YT_URL)
+        self.get(YT_URL)
         time.sleep(1.5)
 
         try:
-            self.browser.get(YT_UPLOAD_URL)
+            self.get(YT_UPLOAD_URL)
             time.sleep(1.5)
             self.browser.save_cookies()
 
@@ -529,7 +529,7 @@ class Youtube(SeleniumAccount):
                             self.print('Upload: published')
 
                             time.sleep(3)
-                            self.browser.get(YT_URL)
+                            self.get(YT_URL)
 
                             return True, video_id
                 except Exception as e:
@@ -545,7 +545,7 @@ class Youtube(SeleniumAccount):
                             self.print('Upload: published')
 
                             time.sleep(3)
-                            self.browser.get(YT_URL)
+                            self.get(YT_URL)
 
                             return True, video_id
 
@@ -555,7 +555,7 @@ class Youtube(SeleniumAccount):
         except Exception as e:
             self.print(e)
 
-            self.browser.get(YT_URL)
+            self.get(YT_URL)
 
             return False, None
 
