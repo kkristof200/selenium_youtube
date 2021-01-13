@@ -436,7 +436,7 @@ class Youtube(SeleniumAccount):
             if extra_sleep_after_upload is not None and extra_sleep_after_upload > 0:
                 time.sleep(extra_sleep_after_upload)
 
-            title_field = self.browser.find_by('div', id_='textbox', timeout=2) or self.browser.find_by(id_='textbox', timeout=2)
+            title_field = self.browser.find_by('div', id_='textbox', timeout=5) or self.browser.find_by(id_='textbox', timeout=5)
             time.sleep(0.5)
             title_field.send_keys(Keys.BACK_SPACE)
 
