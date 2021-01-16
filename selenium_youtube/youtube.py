@@ -11,6 +11,7 @@ from selenium_firefox.firefox import By, Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from kcu import strings
 from kstopit import signal_timeoutable, TimeoutException
+from kyoutubescraper import YoutubeScraper, ChannelAboutData
 
 from bs4 import BeautifulSoup as bs
 
@@ -33,6 +34,7 @@ YT_LOGIN_URL        = 'https://accounts.google.com/signin/v2/identifier?service=
 YT_STUDIO_VIDEO_URL = 'https://studio.youtube.com/video/{}/edit/basic'
 YT_WATCH_VIDEO_URL  = 'https://www.youtube.com/watch?v={}'
 YT_PROFILE_URL      = 'https://www.youtube.com/channel/{}'
+YT_SEARCH_URL       = 'https://www.youtube.com/results?search_query={}'
 
 MAX_TITLE_CHAR_LEN          = 100
 MAX_DESCRIPTION_CHAR_LEN    = 5000
@@ -109,7 +111,23 @@ class Youtube(SeleniumAccount):
     def _profile_url_format(self) -> Optional[str]:
         return YT_PROFILE_URL
 
+
     # -------------------------------------------------------- Public methods -------------------------------------------------------- #
+
+    def get_sub_and_video_count(self, channel_id: str) -> Optional[Tuple[int, int]]:
+        return YoutubeScraper(user_agent=self.user_agent, proxy=self.proxy_str).get_sub_and_video_count(channel_id=channel_id)
+
+    def get_channel_about_data(
+        self,
+        user_name: Optional[str] = None,
+        channel_id: Optional[str] = None,
+        channel_url_name: Optional[str] = None
+    ) -> Optional[ChannelAboutData]:
+        return YoutubeScraper(user_agent=self.user_agent, proxy=self.proxy_str).get_channel_about_data(
+            user_name=user_name,
+            channel_id=channel_id,
+            channel_url_name=channel_url_name
+        )
 
     def watch_video(
         self,
