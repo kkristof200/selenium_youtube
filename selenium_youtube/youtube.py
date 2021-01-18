@@ -6,7 +6,7 @@ import time, json
 from sys import platform
 
 # Pip
-from selenium_account import SeleniumAccount
+from selenium_uploader_account import SeleniumUploaderAccount
 from selenium_firefox.firefox import By, Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from kcu import strings
@@ -49,7 +49,7 @@ LOGIN_INFO_COOKIE_NAME = 'LOGIN_INFO'
 
 # ----------------------------------------------------------- class: Youtube ------------------------------------------------------------- #
 
-class Youtube(SeleniumAccount):
+class Youtube(SeleniumUploaderAccount):
 
     # ------------------------------------------------------------- Init ------------------------------------------------------------- #
 
@@ -98,6 +98,9 @@ class Youtube(SeleniumAccount):
 
 
     # ---------------------------------------------------------- Overrides ----------------------------------------------------------- #
+
+    def _upload_function(self):
+        return self.upload
 
     def _home_url(self) -> str:
         return YT_URL
