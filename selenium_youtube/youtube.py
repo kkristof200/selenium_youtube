@@ -99,7 +99,7 @@ class Youtube(SeleniumUploaderAccount):
 
     # ---------------------------------------------------------- Overrides ----------------------------------------------------------- #
 
-    def _upload_function(self):
+    def _upload_function(self) -> Callable:
         return self.upload
 
     def _home_url(self) -> str:
