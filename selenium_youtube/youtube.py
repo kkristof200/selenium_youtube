@@ -8,7 +8,7 @@ from sys import platform
 # Pip
 from selenium_uploader_account import SeleniumUploaderAccount, Proxy, BaseAddonInstallSettings
 from kcu import strings
-from kstopit import signal_timeoutable, TimeoutException
+from kstopit import signal_timeoutable
 from kyoutubescraper import YoutubeScraper, ChannelAboutData
 
 from selenium.webdriver.common.by import By
