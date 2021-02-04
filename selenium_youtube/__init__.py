@@ -5,4 +5,4 @@ from .enums.analytics_tab import AnalyticsTab
 from .enums.visibility import Visibility
 
 from kyoutubescraper import ChannelAboutData, YoutubeScraper as Scraper
-from selenium_account import *
+from selenium_uploader_account import *
