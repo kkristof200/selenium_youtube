@@ -25,7 +25,7 @@ result = youtube.upload('path_to_video', 'title', 'description', ['tag1', 'tag2'
 
 ## Dependencies
 
-geckodriver
+[beautifulsoup4](https://pypi.org/project/beautifulsoup4), [kcu](https://pypi.org/project/kcu), [kstopit](https://pypi.org/project/kstopit), [kyoutubescraper](https://pypi.org/project/kyoutubescraper), [selenium](https://pypi.org/project/selenium), [selenium-firefox](https://pypi.org/project/selenium-firefox), [selenium-uploader-account](https://pypi.org/project/selenium-uploader-account)
 
 ## Credits
 

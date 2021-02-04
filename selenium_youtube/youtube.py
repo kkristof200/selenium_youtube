@@ -1,17 +1,19 @@
 # --------------------------------------------------------------- Imports ---------------------------------------------------------------- #
 
 # System
-from typing import List, Dict, Optional, Tuple, Callable
+from typing import List, Dict, Optional, Tuple, Callable, Union
 import time, json
 from sys import platform
 
 # Pip
-from selenium_uploader_account import SeleniumUploaderAccount
-from selenium_firefox.firefox import By, Keys
-from selenium.webdriver.common.action_chains import ActionChains
+from selenium_uploader_account import SeleniumUploaderAccount, Proxy, BaseAddonInstallSettings
 from kcu import strings
 from kstopit import signal_timeoutable, TimeoutException
 from kyoutubescraper import YoutubeScraper, ChannelAboutData
+
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 
 from bs4 import BeautifulSoup as bs
 
@@ -55,31 +57,70 @@ class Youtube(SeleniumUploaderAccount):
 
     def __init__(
         self,
+
+        # cookies
         cookies_folder_path: Optional[str] = None,
-        extensions_folder_path: Optional[str] = None,
+        cookies_id: Optional[str] = None,
+        pickle_cookies: bool = False,
+
+        # proxy
+        proxy: Optional[Union[Proxy, str]] = None,
+        # proxy - legacy (kept for convenience)
         host: Optional[str] = None,
         port: Optional[int] = None,
-        cookies_id: Optional[str] = None,
+
+        # addons
+        addons_folder_path: Optional[str] = None,
+        addon_settings: Optional[List[BaseAddonInstallSettings]] = None,
+        # addons - legacy (kept for convenience)
+        extensions_folder_path: Optional[str] = None,
+
+        # other paths
+        geckodriver_path: Optional[str] = None,
         firefox_binary_path: Optional[str] = None,
+        profile_path: Optional[str] = None,
+
+        # profile settings
         private: bool = False,
-        screen_size: Optional[Tuple[int, int]] = None,
+        screen_size: Optional[Tuple[int, int]] = None, # (width, height)
         full_screen: bool = True,
         headless: bool = False,
         language: str = 'en-us',
         user_agent: Optional[str] = None,
         disable_images: bool = False,
+
+        # find function
         default_find_func_timeout: int = 2.5,
+
+        # login
         prompt_user_input_login: bool = True,
         login_prompt_callback: Optional[Callable[[str], None]] = None,
-        login_prompt_timeout_seconds: Optional[float] = None
+        login_prompt_timeout_seconds: int = 60*5
     ):
         super().__init__(
+            # cookies
             cookies_folder_path=cookies_folder_path,
-            extensions_folder_path=extensions_folder_path,
+            cookies_id=cookies_id,
+            pickle_cookies=pickle_cookies,
+
+            # proxy
+            proxy=proxy,
+            # proxy - legacy (kept for convenience)
             host=host,
             port=port,
-            cookies_id=cookies_id,
+
+            # addons
+            addons_folder_path=addons_folder_path,
+            addon_settings=addon_settings,
+            # addons - legacy (kept for convenience)
+            extensions_folder_path=extensions_folder_path,
+
+            # other paths
+            geckodriver_path=geckodriver_path,
             firefox_binary_path=firefox_binary_path,
+            profile_path=profile_path,
+
+            # profile settings
             private=private,
             screen_size=screen_size,
             full_screen=full_screen,
@@ -87,10 +128,14 @@ class Youtube(SeleniumUploaderAccount):
             language=language,
             user_agent=user_agent,
             disable_images=disable_images,
+
+            # find function
             default_find_func_timeout=default_find_func_timeout,
+
+            # login
             prompt_user_input_login=prompt_user_input_login,
             login_prompt_callback=login_prompt_callback,
-            login_prompt_timeout_seconds=login_prompt_timeout_seconds
+            login_prompt_timeout_seconds=login_prompt_timeout_seconds,
         )
 
         if not self.did_log_in_at_init:
@@ -105,20 +150,20 @@ class Youtube(SeleniumUploaderAccount):
     def _home_url(self) -> str:
         return YT_URL
 
-    def _is_logged_in(self) -> bool:
-        return self.browser.has_cookie(LOGIN_INFO_COOKIE_NAME)
-
     def _get_current_user_id(self) -> Optional[str]:
         return self.get_current_channel_id()
 
     def _profile_url_format(self) -> Optional[str]:
         return YT_PROFILE_URL
 
+    def _login_via_cookies_needed_cookie_names(self) -> Union[str, List[str]]:
+        return LOGIN_INFO_COOKIE_NAME
+
 
     # -------------------------------------------------------- Public methods -------------------------------------------------------- #
 
     def get_sub_and_video_count(self, channel_id: str) -> Optional[Tuple[int, int]]:
-        return YoutubeScraper(user_agent=self.user_agent, proxy=self.proxy_str).get_sub_and_video_count(channel_id=channel_id)
+        return YoutubeScraper(user_agent=self.user_agent, proxy=self.proxy.string).get_sub_and_video_count(channel_id=channel_id)
 
     def get_channel_about_data(
         self,
@@ -126,7 +171,7 @@ class Youtube(SeleniumUploaderAccount):
         channel_id: Optional[str] = None,
         channel_url_name: Optional[str] = None
     ) -> Optional[ChannelAboutData]:
-        return YoutubeScraper(user_agent=self.user_agent, proxy=self.proxy_str).get_channel_about_data(
+        return YoutubeScraper(user_agent=self.user_agent, proxy=self.proxy.string).get_channel_about_data(
             user_name=user_name,
             channel_id=channel_id,
             channel_url_name=channel_url_name
@@ -507,7 +552,7 @@ class Youtube(SeleniumUploaderAccount):
             kids_section = self.browser.find(By.NAME, kids_selection_name)
             self.browser.find(By.ID, 'radioLabel', kids_section).click()
             self.print('Upload: did set', kids_selection_name)
-            
+
             self.browser.find(By.ID, 'next-button').click()
             self.print('Upload: clicked first next')
 
