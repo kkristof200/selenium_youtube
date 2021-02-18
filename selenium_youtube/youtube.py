@@ -217,6 +217,11 @@ class Youtube(SeleniumUploaderAccount):
             return watched, liked
 
     def like(self, video_id: str) -> bool:
+        if not self.is_logged_in:
+            print('Error - \'upload\': Isn\'t logged in')
+
+            return False
+
         self.get(YT_WATCH_VIDEO_URL.format(video_id))
 
         try:
@@ -255,6 +260,11 @@ class Youtube(SeleniumUploaderAccount):
         extra_sleep_after_upload: Optional[int] = None,
         extra_sleep_before_publish: Optional[int] = None
     ) -> (bool, Optional[str]):
+        if not self.is_logged_in:
+            print('Error - \'upload\': Isn\'t logged in')
+
+            return False, None
+
         res = self.__upload(
             video_path=video_path,
             title=title,
@@ -276,6 +286,11 @@ class Youtube(SeleniumUploaderAccount):
         return res
 
     def get_current_channel_id(self, _click_avatar: bool = False, _get_home_url: bool = False) -> Optional[str]:
+        if not self.is_logged_in:
+            print('Error - \'upload\': Isn\'t logged in')
+
+            return None
+
         if _get_home_url:
             self.get(YT_URL)
 
@@ -314,6 +329,11 @@ class Youtube(SeleniumUploaderAccount):
         pinned: bool = False,
         timeout: Optional[int] = 15
     ) -> (bool, bool):
+        if not self.is_logged_in:
+            print('Error - \'upload\': Isn\'t logged in')
+
+            return False, False
+
         res = self.__comment_on_video(
             video_id=video_id,
             comment=comment,
