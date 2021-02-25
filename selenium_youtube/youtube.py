@@ -7,13 +7,13 @@ from sys import platform
 
 # Pip
 from selenium_uploader_account import SeleniumUploaderAccount, Proxy, BaseAddonInstallSettings
+from noraise import noraise
 from kcu import strings
 from kstopit import signal_timeoutable
 from kyoutubescraper import YoutubeScraper, ChannelAboutData
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
 
 from bs4 import BeautifulSoup as bs
 
@@ -409,6 +409,7 @@ class Youtube(SeleniumUploaderAccount):
 
         return video_ids
 
+    @noraise(default_return_value=False)
     def check_analytics(
         self,
         tab: AnalyticsTab = AnalyticsTab.OVERVIEW,
@@ -419,77 +420,71 @@ class Youtube(SeleniumUploaderAccount):
 
             return False
 
-        url = '{}/channel/{}/analytics/tab-{}/period-{}'.format(YT_STUDIO_URL.rstrip('/'), self.current_user_id, tab.value, period.value)
+        self.get('{}/channel/{}/analytics/tab-{}/period-{}'.format(YT_STUDIO_URL.rstrip('/'), self.current_user_id, tab.value, period.value))
 
-        try:
-            self.get(url)
+        return True
 
-            return True
-        except Exception as e:
-            self.print(e)
-
-            return False
-
+    @noraise(default_return_value=(False, 0))
     def get_violations(self) -> Tuple[bool, int]: # has_warning, strikes
         self.get(YT_STUDIO_URL)
+        violations_container = self.browser.find_by('div', class_='style-scope ytcd-strikes-item')
 
-        try:
-            violations_container = self.browser.find_by('div', class_='style-scope ytcd-strikes-item')
-
-            if not violations_container:
-                return False, 0
-
-            violations_label = self.browser.find_by('div', class_='label style-scope ytcp-badge', in_element=violations_container)
-
-            if not violations_label:
-                return False, 0
-
-            violation_text = violations_label.text.strip().lower()
-            violation_text_number = 0
-
-            try:
-                violation_text_number = int(violation_text)
-            except:
-                pass
-
-            return True, violation_text_number
-        except Exception as e:
-            self.print(e)
-
+        if not violations_container:
             return False, 0
 
-    def add_endscreen(self, video_id: str, max_wait_seconds_for_processing: float = 0) -> bool:
-        self.get(YT_STUDIO_VIDEO_URL.format(video_id))
+        violations_label = self.browser.find_by('div', class_='label style-scope ytcp-badge', in_element=violations_container)
+
+        if not violations_label:
+            return False, 0
+
+        violation_text = violations_label.text.strip().lower()
+        violation_text_number = 0
 
         try:
-            start_time = time.time()
+            violation_text_number = int(violation_text)
+        except:
+            pass
 
-            while True:
-                attrs = self.browser.get_attributes(self.browser.find_by('ytcp-text-dropdown-trigger', id_='endscreen-editor-link'))
+        return True, violation_text_number
 
-                if not attrs or 'disabled' in attrs:
-                    if time.time() - start_time < max_wait_seconds_for_processing:
-                        time.sleep(1)
+    @noraise(default_return_value=False)
+    def add_endscreen(self, video_id: str, max_wait_seconds_for_processing: float = 0) -> bool:
+        self.get(YT_STUDIO_VIDEO_URL.format(video_id))
+        start_time = time.time()
 
-                        continue
+        while True:
+            attrs = self.browser.get_attributes(self.browser.find_by('ytcp-text-dropdown-trigger', id_='endscreen-editor-link'))
 
-                    return False
-                else:
-                    break
+            if not attrs or 'disabled' in attrs:
+                if time.time() - start_time < max_wait_seconds_for_processing:
+                    time.sleep(1)
 
-            self.browser.find_by('ytcp-text-dropdown-trigger', id_='endscreen-editor-link').click()
-            time.sleep(0.5)
-            self.browser.find_all_by('div', class_='card style-scope ytve-endscreen-template-picker')[0].click()
-            time.sleep(0.5)
-            self.browser.find_by('ytcp-button', id_='save-button').click()
+                    continue
 
-            time.sleep(2)
+                return False
+            else:
+                break
 
-            return self.browser.find_by('ytve-endscreen-editor-options-panel', class_='style-scope ytve-editor', timeout=0.5) is None
-        except Exception as e:
-            self.print(e)
+        self.browser.find_by('ytcp-text-dropdown-trigger', id_='endscreen-editor-link').click()
+        time.sleep(0.5)
+        self.browser.find_all_by('div', class_='card style-scope ytve-endscreen-template-picker')[0].click()
+        time.sleep(0.5)
+        self.browser.find_by('ytcp-button', id_='save-button').click()
 
-            return False
+        time.sleep(2)
+
+        return self.browser.find_by('ytve-endscreen-editor-options-panel', class_='style-scope ytve-editor', timeout=0.5) is None
+
+    @noraise(default_return_value=False)
+    def remove_welcome_popup(
+        self,
+        offset: Tuple[int, int] = (20, 20)
+    ) -> bool:
+        return self.browser.move_to_element(
+            element=self.browser.find_by('iron-overlay-backdrop', class_='opened', timeout=3),
+            offset=offset,
+            click=True
+        )
 
 
     # ------------------------------------------------------- Private methods -------------------------------------------------------- #
