@@ -90,6 +90,7 @@ class Youtube(SeleniumUploaderAccount):
         # option settings
         screen_size: Optional[Tuple[int, int]] = None, # (width, height)
         headless: bool = False,
+        mute_audio: bool = False,
         home_page_url: Optional[str] = None,
 
         # find function
@@ -133,6 +134,7 @@ class Youtube(SeleniumUploaderAccount):
             # option settings
             screen_size=screen_size,
             headless=headless,
+            mute_audio=mute_audio,
             home_page_url=home_page_url,
 
             # find function
