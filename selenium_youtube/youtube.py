@@ -488,7 +488,7 @@ class Youtube(SeleniumUploaderAccount):
         self,
         offset: Tuple[int, int] = (20, 20)
     ) -> bool:
-        self.get(YT_STUDIO_URL)
+        self.get(YT_STUDIO_URL, force=True)
 
         self.browser.move_to_element(
             element=self.browser.find_by('iron-overlay-backdrop', class_='opened', timeout=5),
