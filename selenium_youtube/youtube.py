@@ -36,7 +36,7 @@ YT_LOGIN_URL            = 'https://accounts.google.com/signin/v2/identifier?serv
 YT_STUDIO_VIDEO_URL     = 'https://studio.youtube.com/video/{}/edit/basic'
 YT_WATCH_VIDEO_URL      = 'https://www.youtube.com/watch?v={}'
 YT_PROFILE_URL          = 'https://www.youtube.com/channel/{}'
-YT_PROFILE_CONTENT_URL  = 'https://www.youtube.com/channel/{}/videos'
+YT_PROFILE_CONTENT_URL  = 'https://studio.youtube.com/channel/{}/videos'
 YT_SEARCH_URL           = 'https://www.youtube.com/results?search_query={}'
 
 MAX_TITLE_CHAR_LEN          = 100
@@ -522,7 +522,9 @@ class Youtube(SeleniumUploaderAccount):
             time.sleep(2.5)
 
             if next_page_status is None or next_page_status is 'false':
-                return 
+                return
+            
+        self.quit()
 
         return
 
