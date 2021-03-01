@@ -488,21 +488,14 @@ class Youtube(SeleniumUploaderAccount):
         self,
         offset: Tuple[int, int] = (20, 20)
     ) -> bool:
-        self.get(YT_STUDIO_URL, force=True)
+        timeout = 5
 
-        self.browser.move_to_element(
-            element=self.browser.find_by('iron-overlay-backdrop', class_='opened', timeout=5),
-            offset=offset,
-            click=True
-        )
+        self.get(YT_STUDIO_URL, force=True)
+        self.__dismiss_welcome_popup(offset=offset, timeout=timeout)
 
         self.get(YT_UPLOAD_URL, force=True)
 
-        return self.browser.move_to_element(
-            element=self.browser.find_by('iron-overlay-backdrop', class_='opened', timeout=5),
-            offset=offset,
-            click=True
-        )
+        return self.__dismiss_welcome_popup(offset=offset, timeout=timeout)
 
 
     # ------------------------------------------------------- Private methods -------------------------------------------------------- #
@@ -534,6 +527,8 @@ class Youtube(SeleniumUploaderAccount):
 
             if extra_sleep_after_upload is not None and extra_sleep_after_upload > 0:
                 time.sleep(extra_sleep_after_upload)
+
+            self.__dismiss_welcome_popup()
 
             title_field = self.browser.find_by('div', id_='textbox', timeout=5) or self.browser.find_by(id_='textbox', timeout=5)
             time.sleep(0.5)
@@ -816,6 +811,18 @@ class Youtube(SeleniumUploaderAccount):
 
             if iframe:
                 self.browser.driver.switch_to.default_content()
+
+    @noraise(default_return_value=False)
+    def __dismiss_welcome_popup(
+        self,
+        offset: Tuple[int, int] = (20, 20),
+        timeout: Optional[int] = 2
+    ) -> bool:
+        return self.browser.move_to_element(
+            element=self.browser.find_by('iron-overlay-backdrop', class_='opened', timeout=timeout),
+            offset=offset,
+            click=True
+        )
 
     def __video_url(self, video_id: str) -> str:
         return YT_URL + '/watch?v=' + video_id
