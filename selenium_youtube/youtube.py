@@ -498,12 +498,21 @@ class Youtube(SeleniumUploaderAccount):
 
         return self.__dismiss_welcome_popup(offset=offset, timeout=timeout)
     
+    @noraise()
     def bulk_change_visibility_on_videos(
         self
     ) -> None:
         channel_id = self._get_current_user_id()
         self.get(YT_PROFILE_CONTENT_URL.format(channel_id))
         time.sleep(2)
+        self.browser.find_by('input', class_='text-input style-scope ytcp-chip-bar').click()
+        time.sleep(0.5)
+        self.browser.find_by('paper-item', id='text-item-6').click()
+        time.sleep(0.5)
+        self.browser.find_by('ytcp-checkbox-lit', {'test-id':'PUBLIC'}).click()
+        time.sleep(0.5)
+        self.browser.find_by('ytcp-button', id='apply-button').click()
+        time.sleep(0.5)
         next_page_button = self.browser.find_by('ytcp-icon-button', id='navigate-after')
         next_page_status = next_page_button.get_attribute('aria-disabled')
 
