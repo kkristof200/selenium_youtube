@@ -518,6 +518,17 @@ class Youtube(SeleniumUploaderAccount):
 
         while next_page_status=='false':
             self.__change_to_private_on_current_page()
+            start_time = time.time()
+            update_label = self.browser.find_by('div', class_='label loading-text style-scope ytcp-bulk-actions')
+
+            while update_label is not None:
+                update_label = self.browser.find_by('div', class_='label loading-text style-scope ytcp-bulk-actions')
+                time.sleep(0.5)
+
+                if time.time() - start_time >= 180:
+                    self.quit()
+
+                    return
 
             next_page_button = self.browser.find_by('ytcp-icon-button', id='navigate-after', timeout=5)
             next_page_status = next_page_button.get_attribute('aria-disabled')
@@ -526,8 +537,10 @@ class Youtube(SeleniumUploaderAccount):
             time.sleep(2.5)
 
             if next_page_status is None or next_page_status is 'false':
+                self.quit()
+
                 return
-            
+
         self.quit()
 
         return
@@ -538,7 +551,7 @@ class Youtube(SeleniumUploaderAccount):
         try:
             self.browser.find_by('ytcp-checkbox-lit', id='selection-checkbox').click()
             time.sleep(0.5)
-            edit_container = self.browser.find_by('ytcp-select', class_='top-dropdown bulk-actions-edit style-scope ytcp-bulk-actions', timeout=180)
+            edit_container = self.browser.find_by('ytcp-select', class_='top-dropdown bulk-actions-edit style-scope ytcp-bulk-actions')
             self.browser.find_by('ytcp-dropdown-trigger', class_='style-scope ytcp-text-dropdown-trigger', in_element=edit_container).click()
             time.sleep(0.5)
             self.browser.find_by('paper-item', {'test-id':'VISIBILITY'}).click()
