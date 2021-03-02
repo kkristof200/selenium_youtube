@@ -497,7 +497,7 @@ class Youtube(SeleniumUploaderAccount):
         self.get(YT_UPLOAD_URL, force=True)
 
         return self.__dismiss_welcome_popup(offset=offset, timeout=timeout)
-    
+
     @noraise()
     def bulk_set_videos_to_private(
         self
@@ -532,7 +532,7 @@ class Youtube(SeleniumUploaderAccount):
 
             if next_page_status is None or next_page_status is 'false':
                 return
-            
+
         self.quit()
 
         return
@@ -560,8 +560,8 @@ class Youtube(SeleniumUploaderAccount):
             time.sleep(2.5)
         except Exception as e:
             print(e)
-        
-        return 
+
+        return
 
 
     # ------------------------------------------------------- Private methods -------------------------------------------------------- #
