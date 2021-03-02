@@ -499,7 +499,7 @@ class Youtube(SeleniumUploaderAccount):
         return self.__dismiss_welcome_popup(offset=offset, timeout=timeout)
     
     @noraise()
-    def bulk_change_visibility_on_videos(
+    def bulk_set_videos_to_private(
         self
     ) -> None:
         channel_id = self._get_current_user_id()
