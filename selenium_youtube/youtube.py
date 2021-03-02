@@ -498,7 +498,7 @@ class Youtube(SeleniumUploaderAccount):
 
         return self.__dismiss_welcome_popup(offset=offset, timeout=timeout)
     
-    @noraise()
+    @noraise(default_return_value=None)
     def bulk_set_videos_to_private(
         self
     ) -> None:
@@ -525,7 +525,7 @@ class Youtube(SeleniumUploaderAccount):
                 update_label = self.browser.find_by('div', class_='label loading-text style-scope ytcp-bulk-actions')
                 time.sleep(0.5)
 
-                if time.time() - start_time >= 180:
+                if time.time()-start_time >= 300:
                     self.quit()
 
                     return
@@ -535,8 +535,9 @@ class Youtube(SeleniumUploaderAccount):
             print('aria-disabled is', next_page_status, type(next_page_status))
             next_page_button.click()
             time.sleep(2.5)
+            public_vids = self.browser.find_by('iron-icon', {'icon':'icons:visibility'})
 
-            if next_page_status is None or next_page_status is 'false':
+            if next_page_status is None or next_page_status is 'false' or not public_vids:
                 self.quit()
 
                 return
@@ -545,6 +546,7 @@ class Youtube(SeleniumUploaderAccount):
 
         return
 
+    @noraise(default_return_value=None)
     def __change_to_private_on_current_page(
         self
     ) -> None:
@@ -568,8 +570,8 @@ class Youtube(SeleniumUploaderAccount):
             time.sleep(2.5)
         except Exception as e:
             print(e)
-        
-        return 
+
+        return
 
 
     # ------------------------------------------------------- Private methods -------------------------------------------------------- #
