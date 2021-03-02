@@ -29,14 +29,15 @@ from .enums.analytics_tab import AnalyticsTab
 
 # --------------------------------------------------------------- Defines ---------------------------------------------------------------- #
 
-YT_URL              = 'https://www.youtube.com'
-YT_STUDIO_URL       = 'https://studio.youtube.com'
-YT_UPLOAD_URL       = 'https://www.youtube.com/upload'
-YT_LOGIN_URL        = 'https://accounts.google.com/signin/v2/identifier?service=youtube'
-YT_STUDIO_VIDEO_URL = 'https://studio.youtube.com/video/{}/edit/basic'
-YT_WATCH_VIDEO_URL  = 'https://www.youtube.com/watch?v={}'
-YT_PROFILE_URL      = 'https://www.youtube.com/channel/{}'
-YT_SEARCH_URL       = 'https://www.youtube.com/results?search_query={}'
+YT_URL                  = 'https://www.youtube.com'
+YT_STUDIO_URL           = 'https://studio.youtube.com'
+YT_UPLOAD_URL           = 'https://www.youtube.com/upload'
+YT_LOGIN_URL            = 'https://accounts.google.com/signin/v2/identifier?service=youtube'
+YT_STUDIO_VIDEO_URL     = 'https://studio.youtube.com/video/{}/edit/basic'
+YT_WATCH_VIDEO_URL      = 'https://www.youtube.com/watch?v={}'
+YT_PROFILE_URL          = 'https://www.youtube.com/channel/{}'
+YT_PROFILE_CONTENT_URL  = 'https://studio.youtube.com/channel/{}/videos'
+YT_SEARCH_URL           = 'https://www.youtube.com/results?search_query={}'
 
 MAX_TITLE_CHAR_LEN          = 100
 MAX_DESCRIPTION_CHAR_LEN    = 5000
@@ -496,6 +497,71 @@ class Youtube(SeleniumUploaderAccount):
         self.get(YT_UPLOAD_URL, force=True)
 
         return self.__dismiss_welcome_popup(offset=offset, timeout=timeout)
+    
+    @noraise()
+    def bulk_set_videos_to_private(
+        self
+    ) -> None:
+        channel_id = self._get_current_user_id()
+        self.get(YT_PROFILE_CONTENT_URL.format(channel_id))
+        time.sleep(2)
+        self.browser.find_by('input', class_='text-input style-scope ytcp-chip-bar').click()
+        time.sleep(0.5)
+        self.browser.find_by('paper-item', id='text-item-6').click()
+        time.sleep(0.5)
+        self.browser.find_by('ytcp-checkbox-lit', {'test-id':'PUBLIC'}).click()
+        time.sleep(0.5)
+        self.browser.find_by('ytcp-button', id='apply-button').click()
+        time.sleep(0.5)
+        next_page_button = self.browser.find_by('ytcp-icon-button', id='navigate-after')
+        next_page_status = next_page_button.get_attribute('aria-disabled')
+
+        while next_page_status=='false':
+            self.__change_to_private_on_current_page()
+            loading_message = self.browser.find_by('div', class_='label loading-text style-scope ytcp-bulk-actions')
+
+            while loading_message:
+                loading_message = self.browser.find_by('div', class_='label loading-text style-scope ytcp-bulk-actions')
+                time.sleep(0.5)
+
+            next_page_button = self.browser.find_by('ytcp-icon-button', id='navigate-after', timeout=5)
+            next_page_status = next_page_button.get_attribute('aria-disabled')
+            print('aria-disabled is', next_page_status, type(next_page_status))
+            next_page_button.click()
+            time.sleep(2.5)
+
+            if next_page_status is None or next_page_status is 'false':
+                return
+            
+        self.quit()
+
+        return
+
+    def __change_to_private_on_current_page(
+        self
+    ) -> None:
+        try:
+            self.browser.find_by('ytcp-checkbox-lit', id='selection-checkbox').click()
+            time.sleep(0.5)
+            edit_container = self.browser.find_by('ytcp-select', class_='top-dropdown bulk-actions-edit style-scope ytcp-bulk-actions')
+            self.browser.find_by('ytcp-dropdown-trigger', class_='style-scope ytcp-text-dropdown-trigger', in_element=edit_container).click()
+            time.sleep(0.5)
+            self.browser.find_by('paper-item', {'test-id':'VISIBILITY'}).click()
+            time.sleep(0.5)
+            self.browser.find_by('ytcp-form-select', class_='style-scope ytcp-bulk-actions-editor-visibility').click()
+            time.sleep(0.5)
+            self.browser.find_by('paper-item', {'test-id':'PRIVATE'}).click()
+            time.sleep(0.5)
+            self.browser.find_by('ytcp-button', id='submit-button').click()
+            time.sleep(0.5)
+            self.browser.find_by('ytcp-checkbox-lit', id='confirm-checkbox').click()
+            time.sleep(0.5)
+            self.browser.find_by('ytcp-button', id='confirm-button', class_='style-scope ytcp-confirmation-dialog').click()
+            time.sleep(2.5)
+        except Exception as e:
+            print(e)
+        
+        return 
 
 
     # ------------------------------------------------------- Private methods -------------------------------------------------------- #
