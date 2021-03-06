@@ -573,7 +573,26 @@ class Youtube(SeleniumUploaderAccount):
 
         return
 
+    def bulk_reset_videos(
+        self,
+        affiliate_tag: str
+    ):
+        channel_id = self.get_current_channel_id()
+        url = YT_PROFILE_CONTENT_URL.format(channel_id) + "/upload?filter=%5B%7B%22name%22%3A%22VISIBILITY%22%2C%22value%22%3A%5B%22PRIVATE%22%5D%7D%5D&sort=%7B%22columnType%22%3A%22date%22%2C%22sortOrder%22%3A%22DESCENDING%22%7D"
 
+        self.browser.get(url)
+        time.sleep(1.5)
+        search_videos = self.browser.find_all_by('a', id='thumbnail-anchor')
+        video_urls = []
+        
+        for vid in search_videos:
+            link_suffix = vid.get_attribute('href')
+            print(link_suffix)
+
+            if link_suffix and link_suffix not in video_urls:
+                video_urls.append(YT_STUDIO_URL + link_suffix)
+    
+        print(video_urls)
     # ------------------------------------------------------- Private methods -------------------------------------------------------- #
 
     @signal_timeoutable(name='Upload')
