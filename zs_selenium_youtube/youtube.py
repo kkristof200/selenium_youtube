@@ -580,19 +580,51 @@ class Youtube(SeleniumUploaderAccount):
         channel_id = self.get_current_channel_id()
         url = YT_PROFILE_CONTENT_URL.format(channel_id) + "/upload?filter=%5B%7B%22name%22%3A%22VISIBILITY%22%2C%22value%22%3A%5B%22PRIVATE%22%5D%7D%5D&sort=%7B%22columnType%22%3A%22date%22%2C%22sortOrder%22%3A%22DESCENDING%22%7D"
 
-        self.browser.get(url)
-        time.sleep(1.5)
-        search_videos = self.browser.find_all_by('a', id='thumbnail-anchor')
-        video_urls = []
-        
-        for vid in search_videos:
-            link_suffix = vid.get_attribute('href')
-            print(link_suffix)
+        while True:
+            self.browser.get(url)
+            time.sleep(1.5)
+            search_result_videos = self.browser.find_all_by('a', id='thumbnail-anchor')
 
-            if link_suffix and link_suffix not in video_urls:
-                video_urls.append(YT_STUDIO_URL + link_suffix)
-    
-        print(video_urls)
+            if not search_result_videos:
+                return
+
+            video_urls = []
+            
+            for vid in search_result_videos:
+                link = vid.get_attribute('href')
+
+                if link and link not in video_urls:
+                    video_urls.append(link)
+        
+            for url in video_urls:
+                self.browser.get(url)
+                time.sleep(2)
+
+                description_cointainer = self.browser.find_by('div', id='description-container')
+
+                if not description_cointainer:
+                    return
+
+                description_field = self.browser.find_by('div', {"id":"textbox", "slot":"input"}, in_element=description_cointainer)
+                if description_field:
+                    description = description_field.text
+                
+                description=description.replace('tag=lurker0c-20', 'tag=shark00f-20')
+                description_field.click()
+                time.sleep(0.5)
+                description_field.clear()
+                time.sleep(0.5)
+                description_field.send_keys(description)
+                time.sleep(1)
+                first_attempt = self.browser.find_by('ytcp-video-metadata-visibility', class_='style-scope ytcp-video-metadata-editor-sidepanel', timeout=15).click()
+
+                self.browser.find_by('paper-radio-button', class_='style-scope ytcp-video-visibility-select', name='PUBLIC').click()
+                time.sleep(0.5)
+                self.browser.find_by('ytcp-button', id='save-button').click()
+                time.sleep(0.5)
+                self.browser.find_by('ytcp-button', id='save').click()
+                time.sleep(1)
+
     # ------------------------------------------------------- Private methods -------------------------------------------------------- #
 
     @signal_timeoutable(name='Upload')
