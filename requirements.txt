@@ -2,7 +2,7 @@ beautifulsoup4==4.9.3
 kcu==0.0.65
 kstopit==0.0.10
 kyoutubescraper==0.0.2
-noraise==0.0.9
+noraise==0.0.10
 selenium==3.141.0
 selenium-firefox==1.0.24
 selenium-uploader-account==0.0.12
