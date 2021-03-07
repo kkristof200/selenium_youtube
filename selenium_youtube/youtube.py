@@ -628,7 +628,8 @@ class Youtube(SeleniumUploaderAccount):
                 except Exception as e:
                     self.print('Upload: Thumbnail error: ', e)
 
-            self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/div/ytcp-button/div").click()
+            (self.browser.find_by('ytcp-button', class_='advanced-button style-scope ytcp-uploads-details') or self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/div/ytcp-button/div")).click()
+
             self.print("Upload: clicked more options")
 
             if tags:
