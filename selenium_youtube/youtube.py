@@ -603,10 +603,10 @@ class Youtube(SeleniumUploaderAccount):
             except Exception as e:
                 self.print(e)
 
-            time.sleep(0.5)
-            title_field.send_keys('a')
-            time.sleep(0.5)
-            title_field.send_keys(Keys.BACK_SPACE)
+            # time.sleep(0.5)
+            # title_field.send_keys('a')
+            # time.sleep(0.5)
+            # title_field.send_keys(Keys.BACK_SPACE)
 
             time.sleep(0.5)
             title_field.send_keys(title[:MAX_TITLE_CHAR_LEN])
