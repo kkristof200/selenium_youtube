@@ -611,7 +611,7 @@ class Youtube(SeleniumUploaderAccount):
             time.sleep(0.5)
             title_field.send_keys(title[:MAX_TITLE_CHAR_LEN])
             self.print('Upload: added title')
-            description_container = self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/ytcp-uploads-basics/ytcp-mention-textbox[2]")
+            description_container = self.browser.find_by('ytcp-mention-textbox', class_='description-textarea style-scope ytcp-uploads-basics') or self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/ytcp-uploads-basics/ytcp-mention-textbox[2]")
             description_field = self.browser.find(By.ID, "textbox", element=description_container)
             description_field.click()
             time.sleep(0.5)
