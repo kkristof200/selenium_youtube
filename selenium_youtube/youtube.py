@@ -649,9 +649,10 @@ class Youtube(SeleniumUploaderAccount):
             self.browser.find(By.ID, 'next-button').click()
             self.print('Upload: clicked second next')
 
-            third_next = self.browser.find_by('ytcp-button', id='next-button')
+            visibility_tab = self.browser.find_by('button', {'test-id':'REVIEW', 'state':'active'})
 
-            if third_next:
+            if not visibility_tab:
+                third_next = self.browser.find_by('ytcp-button', id='next-button')
                 third_next.click()
                 self.print('Upload: clicked third next')
 
