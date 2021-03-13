@@ -498,66 +498,6 @@ class Youtube(SeleniumUploaderAccount):
 
         return self.__dismiss_welcome_popup(offset=offset, timeout=timeout)
 
-    @noraise()
-    def bulk_set_videos_to_private(
-        self
-    ) -> None:
-        channel_id = self._get_current_user_id()
-        self.get(YT_PROFILE_CONTENT_URL.format(channel_id))
-        time.sleep(2)
-        self.browser.find_by('input', class_='text-input style-scope ytcp-chip-bar').click()
-        time.sleep(0.5)
-        self.browser.find_by('paper-item', id='text-item-6').click()
-        time.sleep(0.5)
-        self.browser.find_by('ytcp-checkbox-lit', {'test-id':'PUBLIC'}).click()
-        time.sleep(0.5)
-        self.browser.find_by('ytcp-button', id='apply-button').click()
-        time.sleep(0.5)
-        next_page_button = self.browser.find_by('ytcp-icon-button', id='navigate-after')
-        next_page_status = next_page_button.get_attribute('aria-disabled')
-
-        while next_page_status=='false':
-            self.__change_to_private_on_current_page()
-
-            next_page_button = self.browser.find_by('ytcp-icon-button', id='navigate-after', timeout=5)
-            next_page_status = next_page_button.get_attribute('aria-disabled')
-            print('aria-disabled is', next_page_status, type(next_page_status))
-            next_page_button.click()
-            time.sleep(2.5)
-
-            if next_page_status is None or next_page_status is 'false':
-                return
-
-        self.quit()
-
-        return
-
-    def __change_to_private_on_current_page(
-        self
-    ) -> None:
-        try:
-            self.browser.find_by('ytcp-checkbox-lit', id='selection-checkbox').click()
-            time.sleep(0.5)
-            edit_container = self.browser.find_by('ytcp-select', class_='top-dropdown bulk-actions-edit style-scope ytcp-bulk-actions', timeout=180)
-            self.browser.find_by('ytcp-dropdown-trigger', class_='style-scope ytcp-text-dropdown-trigger', in_element=edit_container).click()
-            time.sleep(0.5)
-            self.browser.find_by('paper-item', {'test-id':'VISIBILITY'}).click()
-            time.sleep(0.5)
-            self.browser.find_by('ytcp-form-select', class_='style-scope ytcp-bulk-actions-editor-visibility').click()
-            time.sleep(0.5)
-            self.browser.find_by('paper-item', {'test-id':'PRIVATE'}).click()
-            time.sleep(0.5)
-            self.browser.find_by('ytcp-button', id='submit-button').click()
-            time.sleep(0.5)
-            self.browser.find_by('ytcp-checkbox-lit', id='confirm-checkbox').click()
-            time.sleep(0.5)
-            self.browser.find_by('ytcp-button', id='confirm-button', class_='style-scope ytcp-confirmation-dialog').click()
-            time.sleep(2.5)
-        except Exception as e:
-            print(e)
-
-        return
-
 
     # ------------------------------------------------------- Private methods -------------------------------------------------------- #
 
@@ -593,6 +533,7 @@ class Youtube(SeleniumUploaderAccount):
 
             title_field = self.browser.find_by('div', id_='textbox', timeout=5) or self.browser.find_by(id_='textbox', timeout=5)
             time.sleep(0.5)
+            title_field.clear()
             title_field.send_keys(Keys.BACK_SPACE)
 
             try:
@@ -603,15 +544,15 @@ class Youtube(SeleniumUploaderAccount):
             except Exception as e:
                 self.print(e)
 
-            # time.sleep(0.5)
-            # title_field.send_keys('a')
-            # time.sleep(0.5)
-            # title_field.send_keys(Keys.BACK_SPACE)
+            time.sleep(0.5)
+            title_field.send_keys('a')
+            time.sleep(0.5)
+            title_field.send_keys(Keys.BACK_SPACE)
 
             time.sleep(0.5)
             title_field.send_keys(title[:MAX_TITLE_CHAR_LEN])
             self.print('Upload: added title')
-            description_container = self.browser.find_by('ytcp-mention-textbox', class_='description-textarea style-scope ytcp-uploads-basics') or self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/ytcp-uploads-basics/ytcp-mention-textbox[2]")
+            description_container = self.browser.find_by('ytcp-mention-textbox', class_='description-textarea style-scope ytcp-uploads-basics') or self.browser.find_by('div', id='description-container')
             description_field = self.browser.find_by(id='textbox', in_element=description_container)
             description_field.click()
             time.sleep(0.5)
@@ -628,7 +569,7 @@ class Youtube(SeleniumUploaderAccount):
                 except Exception as e:
                     self.print('Upload: Thumbnail error: ', e)
 
-            (self.browser.find_by('ytcp-button', class_='advanced-button style-scope ytcp-uploads-details') or self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/div/ytcp-button/div")).click()
+            (self.browser.find_by('ytcp-button', class_='advanced-button style-scope ytcp-uploads-details') or self.browser.find_by('ytcp-button', {"id":"toggle-button", "class":"style-scope ytcp-video-metadata-editor", "role":"button"})).click()
 
             self.print("Upload: clicked more options")
 

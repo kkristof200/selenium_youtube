@@ -4,5 +4,5 @@ kstopit==0.0.10
 kyoutubescraper==0.0.2
 noraise==0.0.10
 selenium==3.141.0
-selenium-firefox==1.0.26
+selenium-firefox==1.0.32
 selenium-uploader-account==0.0.12
