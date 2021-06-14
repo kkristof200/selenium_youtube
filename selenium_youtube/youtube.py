@@ -1,4 +1,4 @@
-# --------------------------------------------------------------- Imports ---------------------------------------------------------------- #
+# ------------------------------------------------------------ Imports ----------------------------------------------------------- #
 
 # System
 from typing import List, Dict, Optional, Tuple, Callable, Union
@@ -6,7 +6,8 @@ import time, json
 from sys import platform
 
 # Pip
-from selenium_uploader_account import SeleniumUploaderAccount, Proxy, BaseAddonInstallSettings
+from selenium_uploader_account import SeleniumUploaderAccount
+from selenium_browser import Browser
 from noraise import noraise
 from kcu import strings
 from kstopit import signal_timeoutable
@@ -23,11 +24,11 @@ from .enums.upload_status import UploadStatus
 from .enums.analytics_period import AnalyticsPeriod
 from .enums.analytics_tab import AnalyticsTab
 
-# ---------------------------------------------------------------------------------------------------------------------------------------- #
+# -------------------------------------------------------------------------------------------------------------------------------- #
 
 
 
-# --------------------------------------------------------------- Defines ---------------------------------------------------------------- #
+# ------------------------------------------------------------ Defines ----------------------------------------------------------- #
 
 YT_URL                  = 'https://www.youtube.com'
 YT_STUDIO_URL           = 'https://studio.youtube.com'
@@ -46,56 +47,21 @@ MAX_TAG_CHAR_LEN            = 30
 
 LOGIN_INFO_COOKIE_NAME = 'LOGIN_INFO'
 
-# ---------------------------------------------------------------------------------------------------------------------------------------- #
+# -------------------------------------------------------------------------------------------------------------------------------- #
 
 
 
-# ----------------------------------------------------------- class: Youtube ------------------------------------------------------------- #
+# -------------------------------------------------------- class: Youtube -------------------------------------------------------- #
 
 class Youtube(SeleniumUploaderAccount):
 
-    # ------------------------------------------------------------- Init ------------------------------------------------------------- #
+    # --------------------------------------------------------- Init --------------------------------------------------------- #
 
     def __init__(
         self,
 
-        # cookies
-        cookies_folder_path: Optional[str] = None,
-        cookies_id: Optional[str] = None,
-        pickle_cookies: bool = False,
-
-        # proxy
-        proxy: Optional[Union[Proxy, str]] = None,
-        # proxy - legacy (kept for convenience)
-        host: Optional[str] = None,
-        port: Optional[int] = None,
-
-        # addons
-        addons_folder_path: Optional[str] = None,
-        addon_settings: Optional[List[BaseAddonInstallSettings]] = None,
-        # addons - legacy (kept for convenience)
-        extensions_folder_path: Optional[str] = None,
-
-        # other paths
-        geckodriver_path: Optional[str] = None,
-        firefox_binary_path: Optional[str] = None,
-        profile_path: Optional[str] = None,
-
-        # profile settings
-        private: bool = False,
-        full_screen: bool = True,
-        language: str = 'en-us',
-        user_agent: Optional[str] = None,
-        disable_images: bool = False,
-
-        # option settings
-        screen_size: Optional[Tuple[int, int]] = None, # (width, height)
-        headless: bool = False,
-        mute_audio: bool = False,
-        home_page_url: Optional[str] = None,
-
-        # find function
-        default_find_func_timeout: int = 2.5,
+        # browser
+        browser: Browser,
 
         # login
         prompt_user_input_login: bool = True,
@@ -103,43 +69,8 @@ class Youtube(SeleniumUploaderAccount):
         login_prompt_timeout_seconds: int = 60*5
     ):
         super().__init__(
-            # cookies
-            cookies_folder_path=cookies_folder_path,
-            cookies_id=cookies_id,
-            pickle_cookies=pickle_cookies,
-
-            # proxy
-            proxy=proxy,
-            # proxy - legacy (kept for convenience)
-            host=host,
-            port=port,
-
-            # addons
-            addons_folder_path=addons_folder_path,
-            addon_settings=addon_settings,
-            # addons - legacy (kept for convenience)
-            extensions_folder_path=extensions_folder_path,
-
-            # other paths
-            geckodriver_path=geckodriver_path,
-            firefox_binary_path=firefox_binary_path,
-            profile_path=profile_path,
-
-            # profile settings
-            private=private,
-            full_screen=full_screen,
-            language=language,
-            user_agent=user_agent,
-            disable_images=disable_images,
-
-            # option settings
-            screen_size=screen_size,
-            headless=headless,
-            mute_audio=mute_audio,
-            home_page_url=home_page_url,
-
-            # find function
-            default_find_func_timeout=default_find_func_timeout,
+            # browser
+            browser=browser,
 
             # login
             prompt_user_input_login=prompt_user_input_login,
@@ -151,7 +82,7 @@ class Youtube(SeleniumUploaderAccount):
             self.__dismiss_alerts()
 
 
-    # ---------------------------------------------------------- Overrides ----------------------------------------------------------- #
+    # ------------------------------------------------------- Overrides ------------------------------------------------------ #
 
     def _upload_function(self) -> Callable:
         return self.upload
@@ -169,7 +100,7 @@ class Youtube(SeleniumUploaderAccount):
         return LOGIN_INFO_COOKIE_NAME
 
 
-    # -------------------------------------------------------- Public methods -------------------------------------------------------- #
+    # ---------------------------------------------------- Public methods ---------------------------------------------------- #
 
     def get_sub_and_video_count(self, channel_id: str) -> Optional[Tuple[int, int]]:
         return YoutubeScraper(user_agent=self.user_agent, proxy=self.proxy.string).get_sub_and_video_count(channel_id=channel_id)
@@ -499,7 +430,7 @@ class Youtube(SeleniumUploaderAccount):
         return self.__dismiss_welcome_popup(offset=offset, timeout=timeout)
 
 
-    # ------------------------------------------------------- Private methods -------------------------------------------------------- #
+    # ---------------------------------------------------- Private methods --------------------------------------------------- #
 
     @signal_timeoutable(name='Upload')
     def __upload(
@@ -841,4 +772,4 @@ class Youtube(SeleniumUploaderAccount):
         return YT_URL + '/channel/' + channel_id + '/videos?view=0&sort=da&flow=grid'
 
 
-# ---------------------------------------------------------------------------------------------------------------------------------------- #
+# -------------------------------------------------------------------------------------------------------------------------------- #
