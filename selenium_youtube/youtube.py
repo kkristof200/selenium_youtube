@@ -510,7 +510,7 @@ class Youtube(SeleniumUploaderAccount):
                 tags_field.send_keys(','.join([t for t in tags if len(t) <= MAX_TAG_CHAR_LEN])[:MAX_TAGS_CHAR_LEN-1] + ',')
                 self.print("Upload: added tags")
 
-            kids_selection_name = 'MADE_FOR_KIDS' if made_for_kids else 'NOT_MADE_FOR_KIDS'
+            kids_selection_name = 'VIDEO_MADE_FOR_KIDS_MFK' if made_for_kids else 'VIDEO_MADE_FOR_KIDS_NOT_MFK'
             kids_section = self.browser.find(By.NAME, kids_selection_name)
             self.browser.find(By.ID, 'radioLabel', kids_section).click()
             self.print('Upload: did set', kids_selection_name)
