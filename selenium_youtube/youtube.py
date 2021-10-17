@@ -1,8 +1,8 @@
 # ------------------------------------------------------------ Imports ----------------------------------------------------------- #
 
 # System
-from typing import List, Dict, Optional, Tuple, Callable, Union
-import time, json
+from typing import List, Optional, Tuple, Callable, Union
+import time
 from sys import platform
 
 # Pip
@@ -563,7 +563,7 @@ class Youtube(SeleniumUploaderAccount):
 
                             self.print('Upload: published')
 
-                            time.sleep(3)
+                            time.sleep(7)
                             self.get(YT_URL)
 
                             return True, video_id
