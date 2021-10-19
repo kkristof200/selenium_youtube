@@ -532,6 +532,14 @@ class Youtube(SeleniumUploaderAccount):
             self.browser.find(By.ID, 'radioLabel', visibility_main_button).click()
             self.print('Upload: set to', visibility.name)
 
+            time.sleep(1)
+            got_it_popup = self.browser.find(By.ID, 'got-it-button')
+
+            if got_it_popup:
+                print('FOUND GOT IT POPUP')
+                got_it_popup.click()
+                print('CLICKED GOT IT POPUP')
+
             try:
                 video_url_container = self.browser.find(By.XPATH, "//span[@class='video-url-fadeable style-scope ytcp-video-info']", timeout=2.5)
                 video_url_element = self.browser.find(By.XPATH, "//a[@class='style-scope ytcp-video-info']", element=video_url_container, timeout=2.5)
