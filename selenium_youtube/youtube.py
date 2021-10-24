@@ -714,11 +714,10 @@ class Youtube(SeleniumUploaderAccount):
                                 except Exception as e:
                                     pass
 
-                        confirm_button_container = self.browser.find_by('yt-button-renderer', id_='confirm-button', class_='style-scope yt-confirm-dialog-renderer style-primary size-default', timeout=5)
-
                         # confirm button
-                        self.print('comment: clicking confirm_button')
-                        self.browser.find_by('a', class_='yt-simple-endpoint style-scope yt-button-renderer', in_element=confirm_button_container, timeout=2.5).click()
+                        confirm_button = self.browser.find_by('yt-button-renderer', id_='confirm-button', timeout=5)
+                        self.print(f'comment: clicking confirm_button ({confirm_button})')
+                        confirm_button.click()
                         time.sleep(2)
 
                         return True, True
