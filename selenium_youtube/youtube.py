@@ -349,20 +349,18 @@ class Youtube(SeleniumUploaderAccount):
 
         return video_ids
 
-    @noraise(default_return_value=False)
     def check_analytics(
         self,
         tab: AnalyticsTab = AnalyticsTab.OVERVIEW,
         period: AnalyticsPeriod = AnalyticsPeriod.LAST_28_DAYS
     ) -> bool:
-        if not self.current_user_id:
-            self.print('No channel ID found')
+        return self.__open_yt_studio(f'analytics/tab-{tab.value}/period-{period.value}')
 
-            return False
+    def check_channgel_branding(self) -> bool:
+        return self.__open_yt_studio('editing/images')
 
-        self.get('{}/channel/{}/analytics/tab-{}/period-{}'.format(YT_STUDIO_URL.rstrip('/'), self.current_user_id, tab.value, period.value))
-
-        return True
+    def check_channgel_basic_info(self) -> bool:
+        return self.__open_yt_studio('editing/details')
 
     @noraise(default_return_value=(False, 0))
     def get_violations(self) -> Tuple[bool, int]: # has_warning, strikes
@@ -431,6 +429,23 @@ class Youtube(SeleniumUploaderAccount):
 
 
     # ---------------------------------------------------- Private methods --------------------------------------------------- #
+
+    @noraise(default_return_value=False)
+    def __open_yt_studio(
+        self,
+        sub_url: str
+    ) -> bool:
+        if not self.current_user_id:
+            self.print('No channel ID found')
+
+            return False
+
+        _YT_STUDIO_URL = YT_STUDIO_URL.rstrip('/')
+        sub_url = sub_url.lstrip('/')
+
+        self.get(f'{_YT_STUDIO_URL}/channel/{self.current_user_id}/{sub_url}')
+
+        return True
 
     @signal_timeoutable(name='Upload')
     def __upload(
