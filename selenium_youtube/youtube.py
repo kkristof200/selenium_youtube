@@ -435,18 +435,24 @@ class Youtube(SeleniumUploaderAccount):
         watermark: Optional[str] = None,
     ) -> None:
         self.check_channel_branding()
+        time.sleep(5)
 
         if profile_pic:
-            self._input_file(profile_pic, class_='ytcp-profile-image-upload')
-            self.browser.move_to_element(element=self.browser.find_by('ytcp-button', id_='done-button', class_='ytcp-profile-image-editor'), click=True)
+            print('profile_pic', profile_pic)
+            self.browser.find_by('input', class_='style-scope ytcp-profile-image-upload', type='file', timeout=10).send_keys(profile_pic)
+            print('sleeping')
+            time.sleep(1)
+            self.browser.move_to_element(element=self.browser.find_by('ytcp-button', id_='done-button', class_='done-btn style-scope ytcp-profile-image-editor', timeout=10), click=True)
 
         if banner_image:
-            self._input_file(banner_image, class_='ytcp-banner-upload')
-            self.browser.move_to_element(element=self.browser.find_by('ytcp-button', id_='done-button', class_='ytcp-profile-image-editor'), click=True)
+            self.browser.find_by('input', class_='style-scope ytcp-banner-upload', type='file', timeout=10).send_keys(banner_image)
+            time.sleep(1)
+            self.browser.move_to_element(element=self.browser.find_by('ytcp-button', id_='done-button', class_='done-btn style-scope ytcp-banner-editor', timeout=10), click=True)
 
         if watermark:
-            self._input_file(watermark, class_='ytcp-video-watermark-upload')
-            self.browser.move_to_element(element=self.browser.find_by('ytcp-button', id_='done-button', class_='ytcp-profile-image-editor'), click=True)
+            self.browser.find_by('input', class_='style-scope ytcp-video-watermark-upload', type='file', timeout=10).send_keys(watermark)
+            time.sleep(1)
+            self.browser.move_to_element(element=self.browser.find_by('ytcp-button', id_='done-button', class_='done-btn style-scope ytcp-video-watermark-image-editor', timeout=10), click=True)
 
         self.browser.move_to_element(element=self.browser.find_by('ytcp-button', id_='publish-button'), click=True)
 
@@ -457,9 +463,10 @@ class Youtube(SeleniumUploaderAccount):
         description: Optional[str] = None
     ) -> None:
         self.check_channel_basic_info()
+        time.sleep(5)
 
         if name:
-            self.browser.find_by('ytcp-icon-button', id_='edit-button', class_='ytcp-channel-editing-channel-name', timeout=5).click()
+            self.browser.find_by('ytcp-icon-button', id_='edit-button', class_='style-scope ytcp-channel-editing-channel-name', timeout=10).click()
             self.browser.set_textfield_text_remove_old(
                 element=self.browser.find_by('input', id_='brand-name-input', timeout=5),
                 text=name
@@ -467,7 +474,7 @@ class Youtube(SeleniumUploaderAccount):
 
         if description:
             self.browser.set_textfield_text_remove_old(
-                element=self.browser.find_by('div', id_='textbox', timeout=5) or self.browser.find_by(id_='textbox', timeout=5),
+                element=self.browser.find_by('div', id_='textbox', timeout=5) or self.browser.find_by(id_='textbox', timeout=10),
                 text=description
             )
 
@@ -496,10 +503,9 @@ class Youtube(SeleniumUploaderAccount):
     def _input_file(
         self,
         file_path: str,
-        class_: Optional[str] = None,
     ) -> None:
         # can throw
-        self.browser.find_by('input', class_=class_, type='file').send_keys(file_path)
+        self.browser.find_by('input', type='file').send_keys(file_path)
 
         self.browser.move_to_element(element=self.browser.find_by('ytcp-button', id_='publish-button'), click=True)
 
