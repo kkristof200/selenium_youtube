@@ -356,10 +356,10 @@ class Youtube(SeleniumUploaderAccount):
     ) -> bool:
         return self.__open_yt_studio(f'analytics/tab-{tab.value}/period-{period.value}')
 
-    def check_channgel_branding(self) -> bool:
+    def check_channel_branding(self) -> bool:
         return self.__open_yt_studio('editing/images')
 
-    def check_channgel_basic_info(self) -> bool:
+    def check_channel_basic_info(self) -> bool:
         return self.__open_yt_studio('editing/details')
 
     @noraise(default_return_value=(False, 0))
@@ -427,6 +427,52 @@ class Youtube(SeleniumUploaderAccount):
 
         return self.__dismiss_welcome_popup(offset=offset, timeout=timeout)
 
+    @noraise(default_return_value=None)
+    def setup_account_branding(
+        self,
+        profile_pic: Optional[str] = None,
+        banner_image: Optional[str] = None,
+        watermark: Optional[str] = None,
+    ) -> None:
+        self.check_channel_branding()
+
+        if profile_pic:
+            self._input_file(profile_pic, class_='ytcp-profile-image-upload')
+            self.browser.move_to_element(element=self.browser.find_by('ytcp-button', id_='done-button', class_='ytcp-profile-image-editor'), click=True)
+
+        if banner_image:
+            self._input_file(banner_image, class_='ytcp-banner-upload')
+            self.browser.move_to_element(element=self.browser.find_by('ytcp-button', id_='done-button', class_='ytcp-profile-image-editor'), click=True)
+
+        if watermark:
+            self._input_file(watermark, class_='ytcp-video-watermark-upload')
+            self.browser.move_to_element(element=self.browser.find_by('ytcp-button', id_='done-button', class_='ytcp-profile-image-editor'), click=True)
+
+        self.browser.move_to_element(element=self.browser.find_by('ytcp-button', id_='publish-button'), click=True)
+
+    @noraise(default_return_value=None)
+    def setup_account_details(
+        self,
+        name: Optional[str] = None,
+        description: Optional[str] = None
+    ) -> None:
+        self.check_channel_basic_info()
+
+        if name:
+            self.browser.find_by('ytcp-icon-button', id_='edit-button', class_='ytcp-channel-editing-channel-name', timeout=5).click()
+            self.browser.set_textfield_text_remove_old(
+                element=self.browser.find_by('input', id_='brand-name-input', timeout=5),
+                text=name
+            )
+
+        if description:
+            self.browser.set_textfield_text_remove_old(
+                element=self.browser.find_by('div', id_='textbox', timeout=5) or self.browser.find_by(id_='textbox', timeout=5),
+                text=description
+            )
+
+        self.browser.move_to_element(element=self.browser.find_by('ytcp-button', id_='publish-button'), click=True)
+
 
     # ---------------------------------------------------- Private methods --------------------------------------------------- #
 
@@ -446,6 +492,16 @@ class Youtube(SeleniumUploaderAccount):
         self.get(f'{_YT_STUDIO_URL}/channel/{self.current_user_id}/{sub_url}')
 
         return True
+
+    def _input_file(
+        self,
+        file_path: str,
+        class_: Optional[str] = None,
+    ) -> None:
+        # can throw
+        self.browser.find_by('input', class_=class_, type='file').send_keys(file_path)
+
+        self.browser.move_to_element(element=self.browser.find_by('ytcp-button', id_='publish-button'), click=True)
 
     @signal_timeoutable(name='Upload')
     def __upload(
@@ -469,7 +525,7 @@ class Youtube(SeleniumUploaderAccount):
             time.sleep(1.5)
             self.save_cookies()
 
-            self.browser.find_by('input', type='file').send_keys(video_path)
+            self._input_file(video_path)
             self.print('Upload: uploaded video')
 
             if extra_sleep_after_upload is not None and extra_sleep_after_upload > 0:
@@ -477,34 +533,17 @@ class Youtube(SeleniumUploaderAccount):
 
             self.__dismiss_welcome_popup()
 
-            title_field = self.browser.find_by('div', id_='textbox', timeout=5) or self.browser.find_by(id_='textbox', timeout=5)
-            time.sleep(0.5)
-            title_field.clear()
-            title_field.send_keys(Keys.BACK_SPACE)
-
-            try:
-                time.sleep(0.5)
-                title_field.send_keys(Keys.COMMAND if platform == 'darwin' else Keys.CONTROL, 'a')
-                time.sleep(0.5)
-                title_field.send_keys(Keys.BACK_SPACE)
-            except Exception as e:
-                self.print(e)
-
-            time.sleep(0.5)
-            title_field.send_keys('a')
-            time.sleep(0.5)
-            title_field.send_keys(Keys.BACK_SPACE)
-
-            time.sleep(0.5)
-            title_field.send_keys(title[:MAX_TITLE_CHAR_LEN])
+            self.browser.set_textfield_text_remove_old(
+                element=self.browser.find_by('div', id_='textbox', timeout=5) or self.browser.find_by(id_='textbox', timeout=5),
+                text=title[:MAX_TITLE_CHAR_LEN]
+            )
             self.print('Upload: added title')
+
             description_container = self.browser.find_by('ytcp-mention-textbox', class_='description-textarea style-scope ytcp-uploads-basics') or self.browser.find_by('div', id='description-container')
-            description_field = self.browser.find_by(id='textbox', in_element=description_container)
-            description_field.click()
-            time.sleep(0.5)
-            description_field.clear()
-            time.sleep(0.5)
-            description_field.send_keys(description[:MAX_DESCRIPTION_CHAR_LEN])
+            self.browser.set_textfield_text_remove_old(
+                element=self.browser.find_by(id='textbox', in_element=description_container),
+                text=description[:MAX_DESCRIPTION_CHAR_LEN]
+            )
             self.print('Upload: added description')
 
             if thumbnail_image_path is not None:
