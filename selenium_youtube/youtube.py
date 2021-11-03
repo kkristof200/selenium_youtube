@@ -521,6 +521,7 @@ class Youtube(SeleniumUploaderAccount):
         thumbnail_image_path: Optional[str] = None,
         extra_sleep_after_upload: Optional[int] = None,
         extra_sleep_before_publish: Optional[int] = None,
+        extra_sleep_after_publish: Optional[float] = 15,
         timeout: Optional[int] = None
     ) -> (bool, Optional[str]):
         self.get(YT_URL)
@@ -631,7 +632,9 @@ class Youtube(SeleniumUploaderAccount):
 
                             self.print('Upload: published')
 
-                            time.sleep(7)
+                            if extra_sleep_after_publish:
+                                time.sleep(extra_sleep_after_publish)
+
                             self.get(YT_URL)
 
                             return True, video_id
