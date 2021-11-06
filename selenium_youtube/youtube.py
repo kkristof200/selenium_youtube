@@ -46,6 +46,7 @@ MAX_TAGS_CHAR_LEN           = 400
 MAX_TAG_CHAR_LEN            = 30
 
 LOGIN_INFO_COOKIE_NAME = 'LOGIN_INFO'
+ERROR_MAX_UPLOAD_LIMIT_REACHED = 'MAX_UPLOAD_LIMIT_REACHED'
 
 # -------------------------------------------------------------------------------------------------------------------------------- #
 
@@ -539,6 +540,9 @@ class Youtube(SeleniumUploaderAccount):
                 time.sleep(extra_sleep_after_upload)
 
             self.__dismiss_welcome_popup()
+
+            if self.browser.find_by('div', class_='error-short style-scope ytcp-uploads-dialog', timeout=10) is not None:
+                return False, ERROR_MAX_UPLOAD_LIMIT_REACHED
 
             self.browser.set_textfield_text_remove_old(
                 element=self.browser.find_by('div', id_='textbox', timeout=5) or self.browser.find_by(id_='textbox', timeout=5),
