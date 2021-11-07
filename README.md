@@ -48,7 +48,7 @@ upload_result = youtube.upload('path_to_video', 'title', 'description', ['tag1',
 
 ## Dependencies
 
-[beautifulsoup4](https://pypi.org/project/beautifulsoup4), [kcu](https://pypi.org/project/kcu), [kstopit](https://pypi.org/project/kstopit), [kyoutubescraper](https://pypi.org/project/kyoutubescraper), [noraise](https://pypi.org/project/noraise), [selenium](https://pypi.org/project/selenium), [selenium-browser](https://pypi.org/project/selenium-browser), [selenium-chrome](https://pypi.org/project/selenium-chrome), [selenium-firefox](https://pypi.org/project/selenium-firefox), [selenium-uploader-account](https://pypi.org/project/selenium-uploader-account)
+[beautifulsoup4](https://pypi.org/project/beautifulsoup4), [kcu](https://pypi.org/project/kcu), [kstopit](https://pypi.org/project/kstopit), [kyoutubescraper](https://pypi.org/project/kyoutubescraper), [noraise](https://pypi.org/project/noraise), [selenium](https://pypi.org/project/selenium), [selenium-browser](https://pypi.org/project/selenium-browser), [selenium-chrome](https://pypi.org/project/selenium-chrome), [selenium-firefox](https://pypi.org/project/selenium-firefox), [selenium-uploader-account](https://pypi.org/project/selenium-uploader-account), [xpath-utils](https://pypi.org/project/xpath-utils)
 
 
 

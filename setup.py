@@ -10,7 +10,7 @@ else:
 
 setuptools.setup(
     name='selenium_youtube',
-    version='2.0.14',
+    version='2.0.15',
     author="Kovács Kristóf-Attila & Péntek Zsolt",
     description='selenium_youtube',
     long_description=long_description,
@@ -27,7 +27,8 @@ setuptools.setup(
         'selenium-browser>=0.0.15',
         'selenium-chrome>=0.0.29',
         'selenium-firefox>=2.0.7',
-        'selenium-uploader-account>=0.2.1'
+        'selenium-uploader-account>=0.2.1',
+        'xpath-utils>=0.0.3'
     ],
     classifiers=[
         'Programming Language :: Python :: 3.4',

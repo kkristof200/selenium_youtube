@@ -17,6 +17,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 from bs4 import BeautifulSoup as bs
+from xpath_utils.models.enums.xpath_condition_relation import XPathConditionRelation
+from xpath_utils.models.enums.xpath_condition_type import XPathConditionType
+from xpath_utils.models.xpath_condition import XPathCondition
 
 # Local
 from .enums.visibility import Visibility
@@ -541,8 +544,13 @@ class Youtube(SeleniumUploaderAccount):
 
             self.__dismiss_welcome_popup()
 
-            if self.browser.find_by('div', class_='error-short style-scope ytcp-uploads-dialog', timeout=10) is not None:
-                return False, ERROR_MAX_UPLOAD_LIMIT_REACHED
+            error_dialog = self.browser.find_by('div', class_='error-short style-scope ytcp-uploads-dialog', timeout=10)
+
+            if error_dialog is not None:
+                error_text = error_dialog.text
+
+                if error_text and error_text.strip() != '':
+                    return False, ERROR_MAX_UPLOAD_LIMIT_REACHED
 
             self.browser.set_textfield_text_remove_old(
                 element=self.browser.find_by('div', id_='textbox', timeout=5) or self.browser.find_by(id_='textbox', timeout=5),
@@ -833,11 +841,16 @@ class Youtube(SeleniumUploaderAccount):
         offset: Tuple[int, int] = (20, 20),
         timeout: Optional[int] = 2
     ) -> bool:
-        return self.browser.move_to_element(
-            element=self.browser.find_by('iron-overlay-backdrop', class_='opened', timeout=timeout),
-            offset=offset,
-            click=True
-        )
+        element = self.browser.find_by('iron-overlay-backdrop', class_='opened', timeout=timeout)
+
+        if element:
+            return self.browser.move_to_element(
+                element=self.browser.find_by('iron-overlay-backdrop', class_='opened', timeout=timeout),
+                offset=offset,
+                click=True
+            )
+        else:
+            return False
 
     def __video_url(self, video_id: str) -> str:
         return YT_URL + '/watch?v=' + video_id
