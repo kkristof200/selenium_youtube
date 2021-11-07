@@ -845,7 +845,7 @@ class Youtube(SeleniumUploaderAccount):
 
         if element:
             return self.browser.move_to_element(
-                element=self.browser.find_by('iron-overlay-backdrop', class_='opened', timeout=timeout),
+                element=element,
                 offset=offset,
                 click=True
             )
