@@ -588,10 +588,10 @@ class Youtube(SeleniumUploaderAccount):
             self.browser.find(By.ID, 'radioLabel', kids_section).click()
             self.print('Upload: did set', kids_selection_name)
 
-            self.browser.find(By.ID, 'next-button').click()
+            self.browser.find_by('ytcp-button', id='next-button').click()
             self.print('Upload: clicked first next')
 
-            self.browser.find(By.ID, 'next-button').click()
+            self.browser.find_by('ytcp-button', id='next-button').click()
             self.print('Upload: clicked second next')
 
             visibility_tab = self.browser.find_by('button', {'test-id':'REVIEW', 'state':'active'})
