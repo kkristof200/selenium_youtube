@@ -626,14 +626,15 @@ class Youtube(SeleniumUploaderAccount):
                             aria_disabled = aria_disabled_attr == 'true' or aria_disabled_attr == True
 
                             if not aria_disabled:
+                                self.print('Upload: Clicking third next')
                                 third_next.click()
+                                self.print('Upload: Clicked third next')
+                                time.sleep(3)
 
                     time.sleep(3)
 
-                self.print('Upload: clicked third next')
-
-            visibility_main_button = self.browser.find(By.NAME, visibility.name)
-            self.browser.find(By.ID, 'radioLabel', visibility_main_button).click()
+            visibility_main_button = self.browser.find(By.NAME, visibility.name, timeout=5)
+            self.browser.find(By.ID, 'radioLabel', visibility_main_button, timeout=5).click()
             self.print('Upload: set to', visibility.name)
 
             time.sleep(1)
