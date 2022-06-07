@@ -547,11 +547,9 @@ class Youtube(SeleniumUploaderAccount):
                 self.print(f'Sleeping extra {extra_sleep_after_upload} seconds')
                 time.sleep(extra_sleep_after_upload)
 
-            self.print('__dismiss_welcome_popups')
             self.__dismiss_welcome_popups(timeout=3)
             # self.print('__dismiss_dialogs')
             # self.__dismiss_dialogs(timeout=1)
-            self.print('__dismiss_callouts')
             self.__dismiss_callouts(timeout=1)
 
             error_dialog = self.browser.find_by('div', class_='error-short style-scope ytcp-uploads-dialog', timeout=10)
@@ -862,6 +860,7 @@ class Youtube(SeleniumUploaderAccount):
         offset: Tuple[int, int] = (20, 20),
         timeout: Optional[int] = 2
     ) -> bool:
+        print('__dismiss_welcome_popup')
         element = self.browser.find_by('iron-overlay-backdrop', class_='opened', timeout=timeout)
 
         if element:
@@ -878,6 +877,7 @@ class Youtube(SeleniumUploaderAccount):
         self,
         timeout: Optional[int] = 2
     ) -> bool:
+        print('__dismiss_welcome_popup_2')
         element = self.browser.find_by('ytcp-warm-welcome-dialog', timeout=timeout)
 
         if not element:
@@ -904,14 +904,18 @@ class Youtube(SeleniumUploaderAccount):
         self,
         timeout: Optional[int] = 2
     ) -> None:
+        print('__dismiss_callouts')
         element = self.browser.find_by('div', id='callout', role='dialog', timeout=timeout)
 
         while element is not None:
-            close_button = self.browser.find_by('ytcp-button', id='close-button', role='dialog' ,in_element=element, timeout=timeout)
+            print('dismissing callount')
+            close_button = self.browser.find_by('ytcp-button', id='close-button', in_element=element, timeout=timeout)
 
             if close_button:
                 close_button.click()
                 time.sleep(4)
+            else:
+                break
 
             element = self.browser.find_by('div', id='callout', role='dialog', timeout=timeout)
 
@@ -928,6 +932,8 @@ class Youtube(SeleniumUploaderAccount):
             if close_button:
                 close_button.click()
                 time.sleep(4)
+            else:
+                break
 
             element = self.browser.find_by('ytcp-dialog', timeout=timeout)
 
