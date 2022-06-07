@@ -621,15 +621,26 @@ class Youtube(SeleniumUploaderAccount):
 
                     if third_next is not None:
                         aria_disabled_attr = third_next.get_attribute('aria-disabled')
+                        print(f'third_next: aria-disabled: {aria_disabled_attr} | is_displayed: {third_next.is_displayed()} | is_enabled: {third_next.is_enabled()}')
 
                         if aria_disabled_attr is not None:
                             aria_disabled = aria_disabled_attr == 'true' or aria_disabled_attr == True
 
                             if not aria_disabled:
                                 self.print('Upload: Clicking third next')
-                                third_next.click()
+
+                                try:
+                                    third_next.click()
+                                except:
+                                    print('third click not clickable')
+                                    time.sleep(3)
+
+                                    continue
+
                                 self.print('Upload: Clicked third next')
                                 time.sleep(3)
+
+                                break
 
                     time.sleep(3)
 
