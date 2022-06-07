@@ -544,10 +544,14 @@ class Youtube(SeleniumUploaderAccount):
             self.print('Upload: uploaded video')
 
             if extra_sleep_after_upload is not None and extra_sleep_after_upload > 0:
+                self.print(f'Sleeping extra {extra_sleep_after_upload} seconds')
                 time.sleep(extra_sleep_after_upload)
 
+            self.print('__dismiss_welcome_popups')
             self.__dismiss_welcome_popups(timeout=3)
-            self.__dismiss_dialogs(timeout=1)
+            # self.print('__dismiss_dialogs')
+            # self.__dismiss_dialogs(timeout=1)
+            self.print('__dismiss_callouts')
             self.__dismiss_callouts(timeout=1)
 
             error_dialog = self.browser.find_by('div', class_='error-short style-scope ytcp-uploads-dialog', timeout=10)
@@ -559,7 +563,7 @@ class Youtube(SeleniumUploaderAccount):
                     return False, ERROR_MAX_UPLOAD_LIMIT_REACHED
 
             self.__dismiss_welcome_popups(timeout=2)
-            self.__dismiss_dialogs(timeout=1)
+            # self.__dismiss_dialogs(timeout=1)
             self.__dismiss_callouts(timeout=1)
 
             self.browser.set_textfield_text_remove_old(
@@ -587,7 +591,7 @@ class Youtube(SeleniumUploaderAccount):
 
             self.print("Upload: clicked more options")
             self.__dismiss_welcome_popups(timeout=2)
-            self.__dismiss_dialogs(timeout=1)
+            # self.__dismiss_dialogs(timeout=1)
             self.__dismiss_callouts(timeout=1)
 
             if tags:
@@ -603,12 +607,12 @@ class Youtube(SeleniumUploaderAccount):
 
             self.browser.find_by('ytcp-button', id='next-button').click()
             self.print('Upload: clicked first next')
-            self.__dismiss_dialogs(timeout=1)
+            # self.__dismiss_dialogs(timeout=1)
             self.__dismiss_callouts(timeout=1)
 
             self.browser.find_by('ytcp-button', id='next-button').click()
             self.print('Upload: clicked second next')
-            self.__dismiss_dialogs(timeout=1)
+            # self.__dismiss_dialogs(timeout=1)
             self.__dismiss_callouts(timeout=1)
 
             visibility_tab = self.browser.find_by('button', {'test-id':'REVIEW', 'state':'active'})
