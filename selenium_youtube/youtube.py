@@ -540,6 +540,11 @@ class Youtube(SeleniumUploaderAccount):
             time.sleep(1.5)
             self.save_cookies()
 
+            self.__dismiss_welcome_popups(timeout=3)
+            # self.print('__dismiss_dialogs')
+            # self.__dismiss_dialogs(timeout=1)
+            self.__dismiss_callouts(timeout=1)
+
             self._input_file(video_path)
             self.print('Upload: uploaded video')
 
@@ -547,7 +552,7 @@ class Youtube(SeleniumUploaderAccount):
                 self.print(f'Sleeping extra {extra_sleep_after_upload} seconds')
                 time.sleep(extra_sleep_after_upload)
 
-            self.__dismiss_welcome_popups(timeout=3)
+            self.__dismiss_welcome_popups(timeout=1)
             # self.print('__dismiss_dialogs')
             # self.__dismiss_dialogs(timeout=1)
             self.__dismiss_callouts(timeout=1)
