@@ -912,12 +912,18 @@ class Youtube(SeleniumUploaderAccount):
         if not element:
             return False
 
-        close_button = self.browser.find_by('ytcp-button', id_='dismiss-button', timeout=timeout)
+        for i in range(5):
+            close_button = self.browser.find_by('ytcp-button', id_='dismiss-button', timeout=1)
+            print('close_button', close_button)
 
-        if not close_button:
-            return False
+            if close_button is not None:
+                try:
+                    close_button.click()
+                    return False
+                except:
+                    pass
 
-        close_button.click()
+            time.sleep(1)
 
         return True
 
