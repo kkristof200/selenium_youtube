@@ -890,15 +890,18 @@ class Youtube(SeleniumUploaderAccount):
         timeout: Optional[int] = 2
     ) -> bool:
         print('__dismiss_welcome_popup')
-        element = self.browser.find_by('iron-overlay-backdrop', class_='opened', timeout=timeout)
+        try:
+            element = self.browser.find_by('iron-overlay-backdrop', class_='opened', timeout=timeout)
 
-        if element:
-            return self.browser.move_to_element(
-                element=element,
-                offset=offset,
-                click=True
-            )
-        else:
+            if element:
+                return self.browser.move_to_element(
+                    element=element,
+                    offset=offset,
+                    click=True
+                )
+            else:
+                return False
+        except:
             return False
 
     @noraise(default_return_value=False)
@@ -932,7 +935,7 @@ class Youtube(SeleniumUploaderAccount):
         self,
         timeout: Optional[int] = 2
     ) -> bool:
-        return self.__dismiss_welcome_popup(timeout=timeout) and self.__dismiss_welcome_popup_2(timeout=timeout)
+        return self.__dismiss_welcome_popup_2(timeout=timeout) or self.__dismiss_welcome_popup(timeout=timeout)
 
     @noraise(default_return_value=False)
     def __dismiss_callouts(
