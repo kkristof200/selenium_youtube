@@ -1,6 +1,7 @@
 # ------------------------------------------------------------ Imports ----------------------------------------------------------- #
 
 # System
+from pickle import NONE
 from typing import List, Optional, Tuple, Callable, Union
 import time
 from sys import platform
@@ -542,7 +543,9 @@ class Youtube(SeleniumUploaderAccount):
             if extra_sleep_after_upload is not None and extra_sleep_after_upload > 0:
                 time.sleep(extra_sleep_after_upload)
 
-            self.__dismiss_welcome_popup()
+            self.__dismiss_welcome_popups(timeout=3)
+            self.__dismiss_dialogs(timeout=1)
+            self.__dismiss_callouts(timeout=1)
 
             error_dialog = self.browser.find_by('div', class_='error-short style-scope ytcp-uploads-dialog', timeout=10)
 
@@ -551,6 +554,10 @@ class Youtube(SeleniumUploaderAccount):
 
                 if error_text and error_text.strip() != '':
                     return False, ERROR_MAX_UPLOAD_LIMIT_REACHED
+
+            self.__dismiss_welcome_popups(timeout=2)
+            self.__dismiss_dialogs(timeout=1)
+            self.__dismiss_callouts(timeout=1)
 
             self.browser.set_textfield_text_remove_old(
                 element=self.browser.find_by('div', id_='textbox', timeout=5) or self.browser.find_by(id_='textbox', timeout=5),
@@ -576,6 +583,9 @@ class Youtube(SeleniumUploaderAccount):
             (self.browser.find_by('ytcp-button', class_='advanced-button style-scope ytcp-uploads-details') or self.browser.find_by('ytcp-button', {"id":"toggle-button", "class":"style-scope ytcp-video-metadata-editor", "role":"button"})).click()
 
             self.print("Upload: clicked more options")
+            self.__dismiss_welcome_popups(timeout=2)
+            self.__dismiss_dialogs(timeout=1)
+            self.__dismiss_callouts(timeout=1)
 
             if tags:
                 tags_container = self.browser.find_by('ytcp-form-input-container', id='tags-container') or self.browser.find(By.XPATH, "/html/body/ytcp-uploads-dialog/paper-dialog/div/ytcp-animatable[1]/ytcp-uploads-details/div/ytcp-uploads-advanced/ytcp-form-input-container/div[1]/div[2]/ytcp-free-text-chip-bar/ytcp-chip-bar/div")
@@ -590,9 +600,13 @@ class Youtube(SeleniumUploaderAccount):
 
             self.browser.find_by('ytcp-button', id='next-button').click()
             self.print('Upload: clicked first next')
+            self.__dismiss_dialogs(timeout=1)
+            self.__dismiss_callouts(timeout=1)
 
             self.browser.find_by('ytcp-button', id='next-button').click()
             self.print('Upload: clicked second next')
+            self.__dismiss_dialogs(timeout=1)
+            self.__dismiss_callouts(timeout=1)
 
             visibility_tab = self.browser.find_by('button', {'test-id':'REVIEW', 'state':'active'})
 
@@ -851,6 +865,64 @@ class Youtube(SeleniumUploaderAccount):
             )
         else:
             return False
+
+    @noraise(default_return_value=False)
+    def __dismiss_welcome_popup_2(
+        self,
+        timeout: Optional[int] = 2
+    ) -> bool:
+        element = self.browser.find_by('ytcp-warm-welcome-dialog', timeout=timeout)
+
+        if not element:
+            return False
+
+        close_button = self.browser.find_by('ytcp-button', id_='dismiss-button', timeout=timeout)
+
+        if not close_button:
+            return False
+
+        close_button.click()
+
+        return True
+
+    @noraise(default_return_value=False)
+    def __dismiss_welcome_popups(
+        self,
+        timeout: Optional[int] = 2
+    ) -> bool:
+        return self.__dismiss_welcome_popup(timeout=timeout) and self.__dismiss_welcome_popup_2(timeout=timeout)
+
+    @noraise(default_return_value=False)
+    def __dismiss_callouts(
+        self,
+        timeout: Optional[int] = 2
+    ) -> None:
+        element = self.browser.find_by('div', id='callout', role='dialog', timeout=timeout)
+
+        while element is not None:
+            close_button = self.browser.find_by('ytcp-button', id='close-button', role='dialog' ,in_element=element, timeout=timeout)
+
+            if close_button:
+                close_button.click()
+                time.sleep(4)
+
+            element = self.browser.find_by('div', id='callout', role='dialog', timeout=timeout)
+
+    @noraise(default_return_value=None)
+    def __dismiss_dialogs(
+        self,
+        timeout: Optional[int] = 2
+    ) -> None:
+        element = self.browser.find_by('ytcp-dialog', timeout=timeout)
+
+        while element is not None:
+            close_button = self.browser.find_by('ytcp-button', id='dismiss-button', in_element=element, timeout=timeout)
+
+            if close_button:
+                close_button.click()
+                time.sleep(4)
+
+            element = self.browser.find_by('ytcp-dialog', timeout=timeout)
 
     def __video_url(self, video_id: str) -> str:
         return YT_URL + '/watch?v=' + video_id
