@@ -616,8 +616,20 @@ class Youtube(SeleniumUploaderAccount):
             visibility_tab = self.browser.find_by('button', {'test-id':'REVIEW', 'state':'active'})
 
             if not visibility_tab:
-                third_next = self.browser.find_by('ytcp-button', id='next-button')
-                third_next.click()
+                for i in range(5):
+                    third_next = self.browser.find_by('ytcp-button', id='next-button', timeout=2)
+
+                    if third_next is not None:
+                        aria_disabled_attr = third_next.get_attribute('aria-disabled')
+
+                        if aria_disabled_attr is not None:
+                            aria_disabled = aria_disabled_attr == 'true' or aria_disabled_attr == True
+
+                            if not aria_disabled:
+                                third_next.click()
+
+                    time.sleep(3)
+
                 self.print('Upload: clicked third next')
 
             visibility_main_button = self.browser.find(By.NAME, visibility.name)
