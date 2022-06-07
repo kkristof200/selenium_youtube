@@ -512,7 +512,10 @@ class Youtube(SeleniumUploaderAccount):
         # can throw
         self.browser.find_by('input', type='file').send_keys(file_path)
 
-        self.browser.move_to_element(element=self.browser.find_by('ytcp-button', id_='publish-button'), click=True)
+        try:
+            self.browser.move_to_element(element=self.browser.find_by('ytcp-button', id_='publish-button'), click=True)
+        except:
+            print('_input_file, move to element self.browser.find_by(\'ytcp-button\', id_=\'publish-button\')')
 
     @signal_timeoutable(name='Upload')
     def __upload(
