@@ -4,6 +4,7 @@
 from pickle import NONE
 from typing import List, Optional, Tuple, Callable, Union
 import time
+import os
 from sys import platform
 
 # Pip
@@ -11,7 +12,7 @@ from selenium_uploader_account import SeleniumUploaderAccount
 from selenium_browser import Browser
 from noraise import noraise
 from kcu import strings
-from kstopit import signal_timeoutable
+from kstopit import timeoutable, TimeoutType
 from kyoutubescraper import YoutubeScraper, ChannelAboutData
 
 from selenium.webdriver.common.by import By
@@ -517,7 +518,7 @@ class Youtube(SeleniumUploaderAccount):
         except:
             print('_input_file, move to element self.browser.find_by(\'ytcp-button\', id_=\'publish-button\')')
 
-    @signal_timeoutable(name='Upload')
+    @timeoutable(timeout_type=TimeoutType.Threading if os.name == 'nt' else TimeoutType.Signal, name='Upload')
     def __upload(
         self,
         video_path: str,
@@ -726,7 +727,7 @@ class Youtube(SeleniumUploaderAccount):
             return False, None
 
     # returns (commented_successfully, pinned_comment_successfully)
-    @signal_timeoutable(name='Comment')
+    @timeoutable(timeout_type=TimeoutType.Threading if os.name == 'nt' else TimeoutType.Signal, name='Comment')
     def __comment_on_video(
         self,
         video_id: str,
