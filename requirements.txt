@@ -8,5 +8,5 @@ selenium-browser==0.0.12
 selenium-chrome==0.0.29
 selenium-firefox==2.0.7
 selenium-uploader-account==0.2.1
-setuptools==62.4.0
+setuptools==65.5.1
 xpath-utils==0.0.3
