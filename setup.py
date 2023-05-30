@@ -10,7 +10,7 @@ else:
 
 setuptools.setup(
     name='selenium_youtube',
-    version='2.0.29',
+    version='2.0.30',
     author="Kovács Kristóf-Attila & Péntek Zsolt",
     description='selenium_youtube',
     long_description=long_description,
@@ -20,15 +20,15 @@ setuptools.setup(
     install_requires=[
         'beautifulsoup4>=4.10.0',
         'kcu>=0.0.73',
-        'kstopit>=0.0.11',
+        'kstopit>=0.0.16',
         'kyoutubescraper>=0.0.2',
         'noraise>=0.0.16',
-        'selenium>=4.0.0b4',
+        'selenium>=4.0.0',
         'selenium-browser>=0.0.12',
         'selenium-chrome>=0.0.29',
         'selenium-firefox>=2.0.7',
-        'selenium-uploader-account>=0.2.1',
-        'setuptools>=62.4.0',
+        'selenium-uploader-account>=0.2.3',
+        'setuptools>=67.8.0',
         'xpath-utils>=0.0.3'
     ],
     classifiers=[
